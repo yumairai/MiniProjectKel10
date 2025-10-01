@@ -99,6 +99,7 @@ if uploaded_file:
         labels, centroids = kmeans_manual_pp(X_scaled, k=4)
         data_imputed['Cluster'] = labels
 
+        data_imputed_rounded = data_imputed.round(2)
         st.subheader("📊 Hasil Clustering")
 
         def highlight_row(val):
