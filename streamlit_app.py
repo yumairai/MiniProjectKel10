@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from st_aggrid import AgGrid
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
@@ -66,7 +65,7 @@ if uploaded_file:
         data = pd.read_excel(uploaded_file)
 
     st.subheader("Data yang Diunggah")
-    AgGrid(data)
+    st.dataframe(data, use_container_width=True)
 
     # ===== Preprocessing =====
     imputer = SimpleImputer(strategy='mean')
@@ -106,10 +105,8 @@ if uploaded_file:
             }
             return colors.get(val, '')
 
-        # Terapkan style hanya ke kolom row
+        # Terapkan style hanya ke kolom Cluster
         styled_df = data_imputed.style.applymap(highlight_row, subset=['Cluster'])
-
-        # Tampilkan di Streamlit
         st.dataframe(styled_df, use_container_width=True, height=300)
 
         # ===== Deskripsi Cluster =====
@@ -121,7 +118,7 @@ if uploaded_file:
         }
         cluster_counts = data_imputed['Cluster'].value_counts()
         st.subheader("📌 Deskripsi Cluster")
-        for i in range(4):  # urutkan dari cluster 0 s/d 3
+        for i in range(4):
             count = cluster_counts.get(i, 0)
             st.write(f"**{cluster_summary[i]}** (Jumlah: {count} mahasiswa)")
 
@@ -137,7 +134,7 @@ if uploaded_file:
         )
         st.plotly_chart(fig)
 
-        # ===== Visualisasi Seaborn dengan range lebih luas dan centroid =====
+        # ===== Visualisasi Seaborn dengan centroid =====
         st.subheader("🎯 Visualisasi Cluster (Seaborn)")
         fig, ax = plt.subplots(figsize=(8,6))
         x_min, x_max = data_imputed['Jam Belajar'].min(), data_imputed['Jam Belajar'].max()
@@ -177,11 +174,8 @@ if uploaded_file:
 
         # ===== Visualisasi PCA 2D =====
         st.subheader("🌀 Visualisasi PCA 2D")
-
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
-
-        # Nama kolom deskriptif
         data_imputed["Fokus Akademik"] = X_pca[:,0]
         data_imputed["Kegiatan Sosial"] = X_pca[:,1]
 
