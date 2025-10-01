@@ -91,6 +91,8 @@ if uploaded_file:
     imputer = SimpleImputer(strategy='mean')
     data_imputed = pd.DataFrame(imputer.fit_transform(numeric_data), columns=numeric_data.columns)
 
+    st.write(data.dtypes)
+    st.write(data.head())
 
     # Normalisasi
     scaler = StandardScaler()
