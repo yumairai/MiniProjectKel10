@@ -1,8 +1,6 @@
-streamlit>=1.30.0
-pandas>=2.0
-numpy>=1.26
-plotly>=5.16
-st-aggrid>=0.4
+streamlit>=1.50.0
+pandas>=2.3
+numpy>=2.3
+plotly>=6.3
 matplotlib>=3.8
 seaborn>=0.12
-scikit-learn>=1.3
