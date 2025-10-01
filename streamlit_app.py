@@ -87,7 +87,7 @@ if uploaded_file:
 
     # Ambil hanya kolom numeric untuk imputasi
     numeric_data = data.select_dtypes(include=np.number)
-
+    
     imputer = SimpleImputer(strategy='mean')
     data_imputed = pd.DataFrame(imputer.fit_transform(numeric_data), columns=numeric_data.columns)
 
