@@ -8,13 +8,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.decomposition import PCA
 
-# ================== Fungsi KMeans++ ==================
 def initialize_centroids_kmeans_pp(X, k, random_state=42):
     np.random.seed(random_state)
     n_samples = X.shape[0]
     centroids = []
 
-    # Pilih centroid pertama secara acak
     centroids.append(X[np.random.randint(0, n_samples)])
 
     for _ in range(1, k):
@@ -40,10 +38,8 @@ def kmeans_manual_pp(X, k=4, max_iters=300, tol=1e-5, random_state=42):
 
     return labels, centroids
 
-# ================== Streamlit App ==================
 st.set_page_config(page_title="Survei Keseimbangan Aktivitas Mahasiswa", layout="wide")
 
-# Judul utama
 st.markdown(
     "<h1 style='text-align: center; color: #1f2937; font-weight: 800;'>📊 Survei Keseimbangan Aktivitas Mahasiswa</h1>",
     unsafe_allow_html=True
@@ -54,7 +50,6 @@ st.markdown(
 )
 st.markdown("---")
 
-# ================== Upload Data ==================
 uploaded_file = st.file_uploader("Unggah file CSV atau Excel", type=["csv", "xlsx"])
 if uploaded_file:
     if uploaded_file.name.endswith(".csv"):
@@ -65,8 +60,6 @@ if uploaded_file:
     st.subheader("📂 Data yang Diunggah")
     st.dataframe(data, use_container_width=True)
 
-    # ================== Preprocessing ==================
-    # Mapping kategori ke angka
     mapping = {
         'Kurang dari 1 jam': 0.5,
         '1 - 2 jam': 1.5,
@@ -90,43 +83,36 @@ if uploaded_file:
         'Tidak seimbang': 1
     }
 
-    # Ganti nilai kategori ke angka
     for col in data.columns:
         if data[col].dtype == 'object':
             data[col] = data[col].map(mapping)
 
-    # Ambil hanya kolom numerik
     numeric_data = data.select_dtypes(include=np.number)
 
-    # Imputasi missing values
     imputer = SimpleImputer(strategy='mean')
     data_imputed = pd.DataFrame(imputer.fit_transform(numeric_data), columns=numeric_data.columns)
 
-    # Normalisasi
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(data_imputed)
 
     if st.button("🚀 Proses Data dan Kelompokkan (Manual KMeans++)"):
-        # ================== KMeans++ Manual ==================
         labels, centroids = kmeans_manual_pp(X_scaled, k=4)
         data_imputed['Cluster'] = labels
 
-        # ================== Hasil Clustering ==================
         st.subheader("📊 Hasil Clustering")
 
         def highlight_row(val):
             colors = {
-                0: 'background-color: #93c5fd; color: black;',   # biru muda
-                1: 'background-color: #86efac; color: black;',   # hijau muda
-                2: 'background-color: #d8b4fe; color: black;',   # ungu muda
-                3: 'background-color: #fdba74; color: black;'    # oranye muda
+                0: 'background-color: #93c5fd; color: black;',   
+                1: 'background-color: #86efac; color: black;',   
+                2: 'background-color: #d8b4fe; color: black;',   
+                3: 'background-color: #fdba74; color: black;'    
             }
             return colors.get(val, '')
 
         styled_df = data_imputed.style.applymap(highlight_row, subset=['Cluster'])
         st.dataframe(styled_df, use_container_width=True, height=300)
 
-        # ================== Deskripsi Cluster ==================
         cluster_summary = {
             0: "Cluster 1 – Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
             1: "Cluster 2 – Balanced: Cukup aktif di akademik & non-akademik.",
@@ -139,7 +125,6 @@ if uploaded_file:
             count = cluster_counts.get(i, 0)
             st.write(f"**{cluster_summary[i]}** (Jumlah: {count} mahasiswa)")
 
-        # ================== Visualisasi Plotly ==================
         st.subheader("📊 Visualisasi Cluster (Plotly)")
         if 'Jam Belajar' in data_imputed.columns and 'Jam Organisasi' in data_imputed.columns:
             fig = px.scatter(
@@ -152,7 +137,6 @@ if uploaded_file:
             )
             st.plotly_chart(fig)
 
-        # ================== Visualisasi Seaborn ==================
         st.subheader("🎯 Visualisasi Cluster (Seaborn)")
         if 'Jam Belajar' in data_imputed.columns and 'Jam Organisasi' in data_imputed.columns:
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -182,7 +166,6 @@ if uploaded_file:
             ax.legend(title="Cluster", bbox_to_anchor=(1.05, 1), loc="upper left")
             st.pyplot(fig)
 
-        # ================== Visualisasi PCA 2D ==================
         st.subheader("🌀 Visualisasi PCA 2D")
         pca = PCA(n_components=2)
         X_pca = pca.fit_transform(X_scaled)
