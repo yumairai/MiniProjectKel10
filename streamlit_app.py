@@ -72,6 +72,7 @@ if uploaded_file:
     data_imputed = pd.DataFrame(imputer.fit_transform(data), columns=data.columns)
 
     # Mapping kategori ke angka
+    # Mapping kategori ke angka
     mapping = {
         'Kurang dari 1 jam': 0.5, '1 - 2 jam': 1.5, '3 - 5 jam': 4, '6 - 8 jam': 7, 'Lebih dari 12 jam': 12,
         'Selalu': 4, 'Sering': 3, 'Kadang-kadang': 2, 'Jarang': 1, 'Tidak pernah': 0,
@@ -79,9 +80,17 @@ if uploaded_file:
         'Ya': 1, 'Tidak': 0,
         'Sangat seimbang': 4, 'Seimbang': 3, 'Kurang seimbang': 2, 'Tidak seimbang': 1
     }
-    for col in data_imputed.columns:
-        if data_imputed[col].dtype == 'object':
-            data_imputed[col] = data_imputed[col].map(mapping).fillna(data_imputed[col])
+
+    for col in data.columns:
+        if data[col].dtype == 'object':
+            data[col] = data[col].map(mapping)
+
+    # Ambil hanya kolom numeric untuk imputasi
+    numeric_data = data.select_dtypes(include=np.number)
+
+    imputer = SimpleImputer(strategy='mean')
+    data_imputed = pd.DataFrame(imputer.fit_transform(numeric_data), columns=numeric_data.columns)
+
 
     # Normalisasi
     scaler = StandardScaler()
