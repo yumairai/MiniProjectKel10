@@ -45,7 +45,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.markdown(
-    "<p style='text-align: center; color: #6b7280; font-size:18px;'>Analisis clustering untuk memahami keseimbangan akademik dan organisasi mahasiswa</p>",
+    "<p style='text-align: center; color: #6b7280; font-size:18px;'>Analisis clustering untuk memahami keseimbangan kegiatan akademik dan non akademik mahasiswa</p>",
     unsafe_allow_html=True
 )
 st.markdown("---")
@@ -116,7 +116,7 @@ if uploaded_file:
         cluster_summary = {
             0: "Cluster 1 – Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
             1: "Cluster 2 – Balanced: Cukup aktif di akademik & non-akademik.",
-            2: "Cluster 3 – Organization-Oriented: Aktif di UKM, organisasi, tapi belajar minim.",
+            2: "Cluster 3 – Non Academic-Oriented: Aktif di UKM, organisasi, tapi belajar minim.",
             3: "Cluster 4 – Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
         }
         cluster_counts = data_imputed['Cluster'].value_counts()
