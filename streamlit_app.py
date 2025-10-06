@@ -1,185 +1,195 @@
-import streamlit as st
+# streamlit_app.py
+# ===========================================================================================
+# PREPROCESSING + CLUSTERING (manual)
+# - Tab 1: Preprocessing (Baseline & Improved v2)
+# - Tab 2: Clustering manual (Agglomerative Average-Linkage & DBSCAN) dgn Gower manual
+# Jalankan: streamlit run streamlit_app.py
+# Dependensi: pip install streamlit pandas numpy matplotlib openpyxl
+# ===========================================================================================
+
 import pandas as pd
 import numpy as np
-import plotly.express as px
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.decomposition import PCA
+import streamlit as st
 
-def initialize_centroids_kmeans_pp(X, k, random_state=42):
-    np.random.seed(random_state)
-    n_samples = X.shape[0]
-    centroids = []
-
-    centroids.append(X[np.random.randint(0, n_samples)])
-
-    for _ in range(1, k):
-        distances = np.array([min(np.linalg.norm(x - c) ** 2 for c in centroids) for x in X])
-        prob = distances / distances.sum()
-        cumulative_prob = np.cumsum(prob)
-        r = np.random.rand()
-        next_centroid_idx = np.searchsorted(cumulative_prob, r)
-        centroids.append(X[next_centroid_idx])
-
-    return np.array(centroids)
-
-def kmeans_manual_pp(X, k=4, max_iters=300, tol=1e-5, random_state=42):
-    centroids = initialize_centroids_kmeans_pp(X, k, random_state)
-
-    for _ in range(max_iters):
-        distances = np.sqrt(((X[:, np.newaxis, :] - centroids[np.newaxis, :, :]) ** 2).sum(axis=2))
-        labels = np.argmin(distances, axis=1)
-        new_centroids = np.array([X[labels == j].mean(axis=0) for j in range(k)])
-        if np.all(np.abs(new_centroids - centroids) < tol):
-            break
-        centroids = new_centroids
-
-    return labels, centroids
-
-st.set_page_config(page_title="Survei Keseimbangan Aktivitas Mahasiswa", layout="wide")
-
-st.markdown(
-    "<h1 style='text-align: center; color: #1f2937; font-weight: 800;'>📊 Survei Keseimbangan Aktivitas Mahasiswa</h1>",
-    unsafe_allow_html=True
+# Import semua util dari data_preprocessing.py
+from data_preprocessing import (
+    # Preprocess
+    manual_preprocess_baseline, manual_preprocess_v2,
+    # Distance & metrics
+    gower_distance, silhouette_precomputed,
+    # Clustering
+    agglomerative_average, dbscan_precomputed,
+    # Plots
+    k_distance_values, plot_k_distance_curve, plot_merge_distances,
+    plot_clusters_2d,   
 )
-st.markdown(
-    "<p style='text-align: center; color: #6b7280; font-size:18px;'>Analisis clustering untuk memahami keseimbangan kegiatan akademik dan non akademik mahasiswa</p>",
-    unsafe_allow_html=True
-)
-st.markdown("---")
 
-def manual_preprocess(data):
-    # 1️⃣ Mapping teks ke angka
-    mapping = {
-        'Kurang dari 1 jam': 0.5, '1 - 2 jam': 1.5, '3 - 5 jam': 4, '6 - 8 jam': 7, 'Lebih dari 12 jam': 12,
-        'Selalu': 4, 'Sering': 3, 'Kadang-kadang': 2, 'Jarang': 1, 'Tidak pernah': 0,
-        'Sangat penting': 4, 'Penting': 3, 'Cukup penting': 2, 'Tidak terlalu penting': 1,
-        'Ya': 1, 'Tidak': 0,
-        'Sangat seimbang': 4, 'Seimbang': 3, 'Kurang seimbang': 2, 'Tidak seimbang': 1
-    }
+st.set_page_config(page_title="Preprocessing & Clustering (Manual)", page_icon="🧹", layout="wide")
 
-    df = data.copy()
-    for col in df.columns:
-        if df[col].dtype == 'object':
-            df[col] = df[col].map(mapping)
+# ---------------- Helpers kecil untuk UI ----------------
+def to_csv_download_button(df: pd.DataFrame, filename: str, label: str):
+    """Tombol download CSV di Streamlit."""
+    csv = df.to_csv(index=False).encode("utf-8")
+    st.download_button(label=label, data=csv, file_name=filename, mime="text/csv")
 
-    # 2️⃣ Ambil kolom numerik
-    df_num = df.select_dtypes(include=['number']).copy()
+# ==================== UI ====================
+st.title("🧹 Preprocessing & 🔗 Clustering (Manual)")
 
-    # 3️⃣ Imputasi manual (pakai median)
-    for col in df_num.columns:
-        median_val = df_num[col].median()
-        df_num[col] = df_num[col].fillna(median_val)
+tab1, tab2 = st.tabs(["1) Preprocessing", "2) Clustering (Manual)"])
 
-    # 4️⃣ Deteksi & buang outlier (IQR manual)
-    Q1 = df_num.quantile(0.25)
-    Q3 = df_num.quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-
-    before_rows = len(df_num)
-    df_filtered = df_num[~((df_num < lower_bound) | (df_num > upper_bound)).any(axis=1)]
-    outlier_removed = before_rows - len(df_filtered)
-
-    # 5️⃣ Log-transform bila distribusi terlalu miring
-    # (cek skewness manual)
-    for col in df_filtered.columns:
-        skewness = ((df_filtered[col] - df_filtered[col].mean())**3).mean() / (df_filtered[col].std()**3)
-        if abs(skewness) > 1:  # data terlalu miring
-            df_filtered[col] = np.log1p(df_filtered[col] - df_filtered[col].min() + 1)
-
-    # 6️⃣ Normalisasi manual (z-score)
-    mean_vals = df_filtered.mean()
-    std_vals = df_filtered.std(ddof=0)
-    X_scaled = (df_filtered - mean_vals) / std_vals
-
-    return df_filtered, X_scaled, outlier_removed
-
-
-# 🧩 Ganti bagian lama preprocessing kamu:
-uploaded_file = st.file_uploader("Unggah file CSV atau Excel", type=["csv", "xlsx"])
-if uploaded_file:
-    if uploaded_file.name.endswith(".csv"):
-        data = pd.read_csv(uploaded_file)
+# ---------------- TAB 1: PREPROCESSING ----------------
+with tab1:
+    st.sidebar.header("⚙️ Opsi Preprocessing")
+    mode = st.sidebar.selectbox("Mode", ["Improved v2 (disarankan)", "Baseline (awal)"])
+    if mode == "Improved v2 (disarankan)":
+        outlier_mode = st.sidebar.selectbox("Outlier handling", ["clip", "drop"])
+        scale_mode = st.sidebar.selectbox("Scaling", ["robust", "standard", "None"])
+        small_cat_max = st.sidebar.number_input("Max kardinalitas kategori kecil (one-hot)", 2, 50, 12, 1)
+        skew_th = st.sidebar.slider("Ambang log-transform (|skew|>", 0.5, 3.0, 1.0, 0.1)
     else:
-        data = pd.read_excel(uploaded_file)
+        outlier_mode = "drop"; scale_mode = "standard"; small_cat_max = 12; skew_th = 1.0
 
-    st.subheader("📂 Data yang Diunggah")
-    st.dataframe(data, use_container_width=True)
+    uploaded_file = st.file_uploader("Unggah file CSV/XLSX (Preprocessing)", type=["csv", "xlsx"], key="uploader_pre")
 
-    # 🚀 Preprocessing manual
-    data_imputed, X_scaled, outlier_removed = manual_preprocess(data)
-    st.success(f"✅ Data berhasil diproses — {outlier_removed} baris dihapus karena outlier.")
+    if uploaded_file is not None:
+        # Baca file
+        try:
+            if uploaded_file.name.lower().endswith(".csv"):
+                data = pd.read_csv(uploaded_file)
+            else:
+                data = pd.read_excel(uploaded_file)  # butuh openpyxl
+        except Exception as e:
+            st.error(f"Gagal membaca file: {e}")
+            st.stop()
 
-    # Tampilkan preview hasil preprocessing
-    st.subheader("🔎 Data Setelah Preprocessing")
-    st.dataframe(data_imputed.round(3), use_container_width=True)
+        st.subheader("📂 Data Asli (preview)")
+        st.dataframe(data.head(15), use_container_width=True)
 
-    if st.button("🚀 Proses Data dan Kelompokkan (Manual KMeans++)"):
-        # Jalankan clustering manual
-        labels, centroids = kmeans_manual_pp(X_scaled, k=4)
-        data_imputed['Cluster'] = labels
+        if st.button("🚀 Proses Data", key="process_pre"):
+            with st.spinner("Memproses..."):
+                try:
+                    if mode == "Improved v2 (disarankan)":
+                        imputed, X_scaled, report = manual_preprocess_v2(
+                            data,
+                            outlier=outlier_mode,
+                            scale=None if scale_mode == "None" else scale_mode,
+                            small_cat_max_card=small_cat_max,
+                            skew_thresh=skew_th
+                        )
+                    else:
+                        imputed, X_scaled, report = manual_preprocess_baseline(data)
+                except Exception as e:
+                    st.exception(e)
+                    st.stop()
 
-        # Bulatkan angka ke dua desimal
-        data_imputed_rounded = data_imputed.copy()
-        for col in data_imputed.columns:
-            if isinstance(data_imputed[col].iloc[0], (int, float)):
-                data_imputed_rounded[col] = data_imputed[col].round(2)
+            st.success("✅ Selesai!")
+            # simpan juga X_scaled ke session untuk opsi plot
+            st.session_state["X_scaled"] = X_scaled.to_numpy()
 
-        st.subheader("📊 Hasil Clustering")
+            # Simpan hasil clean/imputed ke session supaya bisa dipakai di Tab Clustering
+            st.session_state["clean_imputed"] = imputed
 
-        # Highlight warna cluster manual pakai HTML
-        def color_for_cluster(c):
-            colors = ["#93c5fd", "#86efac", "#d8b4fe", "#fdba74"]
-            return colors[c % len(colors)]
+            c1, c2 = st.columns(2)
+            with c1:
+                st.subheader("🔎 Data Setelah Preprocessing (imputed/clean)")
+                st.dataframe(imputed.head(25), use_container_width=True)
+                to_csv_download_button(imputed, "clean_imputed.csv", "⬇️ Download clean_imputed.csv")
+            with c2:
+                st.subheader("📐 Fitur Terskalakan (X_scaled)")
+                st.dataframe(X_scaled.head(25), use_container_width=True)
+                to_csv_download_button(X_scaled, "X_scaled.csv", "⬇️ Download X_scaled.csv")
 
-        html_table = "<table style='border-collapse:collapse;width:100%;'>"
-        html_table += "<tr>" + "".join(f"<th style='border:1px solid #ccc;padding:4px;text-align:center;background:#f3f4f6'>{col}</th>" for col in data_imputed_rounded.columns) + "</tr>"
-        for _, row in data_imputed_rounded.iterrows():
-            c = int(row['Cluster'])
-            html_table += "<tr>"
-            for col in data_imputed_rounded.columns:
-                bg = f"background-color:{color_for_cluster(c)};color:black;" if col == "Cluster" else ""
-                html_table += f"<td style='border:1px solid #ccc;padding:4px;text-align:center;{bg}'>{row[col]}</td>"
-            html_table += "</tr>"
-        html_table += "</table>"
-        st.markdown(html_table, unsafe_allow_html=True)
+            st.subheader("📝 Report")
+            st.json(report)
+    else:
+        st.info("Silakan unggah file terlebih dahulu untuk preprocessing.")
 
-        # Deskripsi cluster
-        cluster_summary = {
-            0: "Cluster 1 – Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
-            1: "Cluster 2 – Balanced: Cukup aktif di akademik & non-akademik.",
-            2: "Cluster 3 – Non Academic-Oriented: Aktif di UKM/organisasi, belajar minim.",
-            3: "Cluster 4 – Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
-        }
-        st.subheader("📌 Deskripsi Cluster")
-        counts = {}
-        for c in labels:
-            counts[c] = counts.get(c, 0) + 1
-        for i in range(4):
-            st.write(f"**{cluster_summary[i]}** (Jumlah: {counts.get(i,0)} mahasiswa)")
+# ---------------- TAB 2: CLUSTERING MANUAL ----------------
+with tab2:
+    st.header("🔗 Clustering (Agglomerative / DBSCAN — Manual)")
 
-        # Visualisasi sederhana pakai Streamlit chart
-        st.subheader("📊 Visualisasi Cluster (Scatter Chart)")
-        if 'Jam Belajar' in data_imputed_rounded.columns and 'Jam Organisasi' in data_imputed_rounded.columns:
-            chart_data = data_imputed_rounded[['Jam Belajar', 'Jam Organisasi', 'Cluster']].rename(columns={
-                'Jam Belajar': 'x',
-                'Jam Organisasi': 'y',
-                'Cluster': 'cluster'
-            })
-            st.scatter_chart(chart_data, x='x', y='y', color='cluster')
+    # Pilih sumber data: pakai hasil preprocessing atau upload baru
+    src = st.radio("Pilih sumber data clustering", ["Gunakan hasil Preprocessing (clean_imputed)", "Upload file baru"], horizontal=True)
+    df_for_cluster = None
 
-        # Visualisasi 2D sederhana tanpa PCA (ambil dua kolom pertama)
-        st.subheader("🌀 Visualisasi Cluster 2D (Tanpa PCA)")
-        num_cols = [c for c in data_imputed_rounded.columns if c != 'Cluster']
-        if len(num_cols) >= 2:
-            chart_data2d = data_imputed_rounded[[num_cols[0], num_cols[1], 'Cluster']].rename(columns={
-                num_cols[0]: 'Fokus Akademik',
-                num_cols[1]: 'Kegiatan Sosial',
-                'Cluster': 'cluster'
-            })
-            st.scatter_chart(chart_data2d, x='Fokus Akademik', y='Kegiatan Sosial', color='cluster')
+    if src == "Gunakan hasil Preprocessing (clean_imputed)":
+        if "clean_imputed" in st.session_state:
+            df_for_cluster = st.session_state["clean_imputed"].copy()
+            st.success(f"Memakai data dari preprocessing: shape = {df_for_cluster.shape}")
+        else:
+            st.warning("Belum ada hasil preprocessing. Silakan proses di Tab 1 atau upload file baru.")
+    else:
+        up2 = st.file_uploader("Unggah file CSV/XLSX (untuk Clustering)", type=["csv", "xlsx"], key="uploader_cluster")
+        if up2 is not None:
+            try:
+                if up2.name.lower().endswith(".csv"):
+                    df_for_cluster = pd.read_csv(up2)
+                else:
+                    df_for_cluster = pd.read_excel(up2)
+            except Exception as e:
+                st.error(f"Gagal membaca file: {e}")
 
+    if df_for_cluster is not None:
+        st.write("Preview data untuk clustering:")
+        st.dataframe(df_for_cluster.head(10), use_container_width=True)
+
+        method = st.selectbox("Metode", ["Agglomerative (Average-Linkage, Manual)", "DBSCAN (Manual)"])
+
+        # Hitung matriks jarak Gower manual (pakai data bersih/imputed)
+        with st.spinner("Menghitung matriks jarak (Gower manual)..."):
+            D = gower_distance(df_for_cluster)
+
+        # -------- Agglomerative manual --------
+        if method == "Agglomerative (Average-Linkage, Manual)":
+            k = st.number_input("Jumlah cluster (k)", min_value=2, max_value=30, value=4, step=1)
+            if st.button("▶️ Jalankan Agglomerative (Manual)"):
+                with st.spinner("Clustering..."):
+                    labels, merges = agglomerative_average(D, int(k))
+                    sil = silhouette_precomputed(D, labels)
+
+                st.success(f"Selesai. Silhouette (precomputed) = {sil:.3f}")
+                df_out = df_for_cluster.copy()
+                df_out["cluster"] = labels
+                st.dataframe(df_out.head(20), use_container_width=True)
+                to_csv_download_button(df_out, f"clusters_agg_manual_k{k}.csv", f"⬇️ Download clusters_agg_manual_k{k}.csv")
+
+                st.subheader("📈 Kurva jarak penggabungan (indikasi lompatan untuk pilih k)")
+                fig = plot_merge_distances(merges)
+                if fig is not None:
+                    st.pyplot(fig)
+
+                st.subheader("📊 Ringkasan per cluster (median tiap fitur)")
+                st.dataframe(df_out.groupby("cluster").median(numeric_only=True), use_container_width=True)
+
+        # -------- DBSCAN manual --------
+        else:
+            c1, c2 = st.columns(2)
+            with c1:
+                eps = st.number_input("eps (0.01–1.0)", min_value=0.01, max_value=5.0, value=0.35, step=0.01)
+            with c2:
+                min_samples = st.number_input("min_samples", min_value=3, max_value=50, value=6, step=1)
+
+            if st.button("▶️ Jalankan DBSCAN (Manual)"):
+                with st.spinner("Clustering..."):
+                    labels = dbscan_precomputed(D, float(eps), int(min_samples))
+                    valid = labels != -1
+                    if np.unique(labels[valid]).size >= 2:
+                        sil = silhouette_precomputed(D[np.ix_(valid, valid)], labels[valid])
+                    else:
+                        sil = float("nan")
+                    noise_pct = (labels == -1).mean() * 100
+
+                st.success(f"Selesai. Silhouette(valid) = {sil if sil==sil else 'NaN'} | Noise = {noise_pct:.1f}%")
+                df_out = df_for_cluster.copy()
+                df_out["cluster"] = labels
+                st.dataframe(df_out.head(20), use_container_width=True)
+                to_csv_download_button(df_out, f"clusters_dbscan_manual.csv", "⬇️ Download clusters_dbscan_manual.csv")
+
+            st.subheader("📈 k-distance plot (bantu pilih eps)")
+            k_nn = st.number_input("k untuk k-distance (≈ min_samples)", min_value=3, max_value=50, value=int(min_samples), step=1)
+            if st.button("Tampilkan k-distance plot"):
+                vals = k_distance_values(D, int(k_nn))
+                fig = plot_k_distance_curve(vals, int(k_nn))
+                st.pyplot(fig)
+    else:
+        st.info("Pilih sumber data dan/atau upload file untuk melakukan clustering.")
