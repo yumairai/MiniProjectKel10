@@ -152,103 +152,67 @@ if uploaded_file:
     st.dataframe(data_imputed.round(3), use_container_width=True)
 
     if st.button("🚀 Proses Data dan Kelompokkan (Manual KMeans++)"):
+        # Jalankan clustering manual
         labels, centroids = kmeans_manual_pp(X_scaled, k=4)
         data_imputed['Cluster'] = labels
 
-        data_imputed_rounded = data_imputed.round(2)
+        # Bulatkan angka ke dua desimal
+        data_imputed_rounded = data_imputed.copy()
+        for col in data_imputed.columns:
+            if isinstance(data_imputed[col].iloc[0], (int, float)):
+                data_imputed_rounded[col] = data_imputed[col].round(2)
+
         st.subheader("📊 Hasil Clustering")
 
-        def highlight_row(val):
-            colors = {
-                0: 'background-color: #93c5fd; color: black;',   
-                1: 'background-color: #86efac; color: black;',   
-                2: 'background-color: #d8b4fe; color: black;',   
-                3: 'background-color: #fdba74; color: black;'    
-            }
-            return colors.get(val, '')
+        # Highlight warna cluster manual pakai HTML
+        def color_for_cluster(c):
+            colors = ["#93c5fd", "#86efac", "#d8b4fe", "#fdba74"]
+            return colors[c % len(colors)]
 
-        styled_df = data_imputed.style.applymap(highlight_row, subset=['Cluster'])
-        st.dataframe(styled_df, use_container_width=True, height=300)
+        html_table = "<table style='border-collapse:collapse;width:100%;'>"
+        html_table += "<tr>" + "".join(f"<th style='border:1px solid #ccc;padding:4px;text-align:center;background:#f3f4f6'>{col}</th>" for col in data_imputed_rounded.columns) + "</tr>"
+        for _, row in data_imputed_rounded.iterrows():
+            c = int(row['Cluster'])
+            html_table += "<tr>"
+            for col in data_imputed_rounded.columns:
+                bg = f"background-color:{color_for_cluster(c)};color:black;" if col == "Cluster" else ""
+                html_table += f"<td style='border:1px solid #ccc;padding:4px;text-align:center;{bg}'>{row[col]}</td>"
+            html_table += "</tr>"
+        html_table += "</table>"
+        st.markdown(html_table, unsafe_allow_html=True)
 
+        # Deskripsi cluster
         cluster_summary = {
             0: "Cluster 1 – Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
             1: "Cluster 2 – Balanced: Cukup aktif di akademik & non-akademik.",
-            2: "Cluster 3 – Non Academic-Oriented: Aktif di UKM, organisasi, tapi belajar minim.",
+            2: "Cluster 3 – Non Academic-Oriented: Aktif di UKM/organisasi, belajar minim.",
             3: "Cluster 4 – Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
         }
-        cluster_counts = data_imputed['Cluster'].value_counts()
         st.subheader("📌 Deskripsi Cluster")
+        counts = {}
+        for c in labels:
+            counts[c] = counts.get(c, 0) + 1
         for i in range(4):
-            count = cluster_counts.get(i, 0)
-            st.write(f"**{cluster_summary[i]}** (Jumlah: {count} mahasiswa)")
+            st.write(f"**{cluster_summary[i]}** (Jumlah: {counts.get(i,0)} mahasiswa)")
 
-        st.subheader("📊 Visualisasi Cluster (Plotly)")
-        if 'Jam Belajar' in data_imputed.columns and 'Jam Organisasi' in data_imputed.columns:
-            fig = px.scatter(
-                data_frame=data_imputed,
-                x='Jam Belajar',
-                y='Jam Organisasi',
-                color='Cluster',
-                labels={'Jam Belajar': 'Jam Belajar per Minggu', 'Jam Organisasi': 'Jam Organisasi per Minggu'},
-                title="Visualisasi Cluster (Manual KMeans++)"
-            )
-            st.plotly_chart(fig)
+        # Visualisasi sederhana pakai Streamlit chart
+        st.subheader("📊 Visualisasi Cluster (Scatter Chart)")
+        if 'Jam Belajar' in data_imputed_rounded.columns and 'Jam Organisasi' in data_imputed_rounded.columns:
+            chart_data = data_imputed_rounded[['Jam Belajar', 'Jam Organisasi', 'Cluster']].rename(columns={
+                'Jam Belajar': 'x',
+                'Jam Organisasi': 'y',
+                'Cluster': 'cluster'
+            })
+            st.scatter_chart(chart_data, x='x', y='y', color='cluster')
 
-        st.subheader("🎯 Visualisasi Cluster (Seaborn)")
-        if 'Jam Belajar' in data_imputed.columns and 'Jam Organisasi' in data_imputed.columns:
-            fig, ax = plt.subplots(figsize=(8, 6))
-            sns.scatterplot(
-                x=data_imputed['Jam Belajar'],
-                y=data_imputed['Jam Organisasi'],
-                hue=data_imputed['Cluster'],
-                palette="Set1",
-                s=120,
-                alpha=0.8,
-                ax=ax
-            )
-            for i, centroid in enumerate(centroids):
-                try:
-                    ax.scatter(
-                        centroid[data_imputed.columns.get_loc('Jam Belajar')],
-                        centroid[data_imputed.columns.get_loc('Jam Organisasi')],
-                        marker='X',
-                        s=200,
-                        color='black',
-                        edgecolor='white',
-                        label=f'Centroid {i}'
-                    )
-                except:
-                    pass
-            plt.title("Cluster Berdasarkan Jam Belajar & Jam Organisasi")
-            ax.legend(title="Cluster", bbox_to_anchor=(1.05, 1), loc="upper left")
-            st.pyplot(fig)
+        # Visualisasi 2D sederhana tanpa PCA (ambil dua kolom pertama)
+        st.subheader("🌀 Visualisasi Cluster 2D (Tanpa PCA)")
+        num_cols = [c for c in data_imputed_rounded.columns if c != 'Cluster']
+        if len(num_cols) >= 2:
+            chart_data2d = data_imputed_rounded[[num_cols[0], num_cols[1], 'Cluster']].rename(columns={
+                num_cols[0]: 'Fokus Akademik',
+                num_cols[1]: 'Kegiatan Sosial',
+                'Cluster': 'cluster'
+            })
+            st.scatter_chart(chart_data2d, x='Fokus Akademik', y='Kegiatan Sosial', color='cluster')
 
-        st.subheader("🌀 Visualisasi PCA 2D")
-        pca = PCA(n_components=2)
-        X_pca = pca.fit_transform(X_scaled)
-        data_imputed["Fokus Akademik"] = X_pca[:, 0]
-        data_imputed["Kegiatan Sosial"] = X_pca[:, 1]
-
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.scatterplot(
-            data=data_imputed,
-            x="Fokus Akademik",
-            y="Kegiatan Sosial",
-            hue="Cluster",
-            palette="Set2",
-            s=120,
-            alpha=0.8
-        )
-        for i, centroid in enumerate(centroids):
-            centroid_pca = pca.transform(centroid.reshape(1, -1))
-            ax.scatter(
-                centroid_pca[0, 0],
-                centroid_pca[0, 1],
-                marker='X',
-                s=200,
-                color='black',
-                edgecolor='white'
-            )
-        plt.title("Visualisasi Cluster Mahasiswa (PCA 2D)")
-        ax.legend(title="Cluster", bbox_to_anchor=(1.05, 1), loc="upper left")
-        st.pyplot(fig)
