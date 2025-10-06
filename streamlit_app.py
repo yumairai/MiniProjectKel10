@@ -100,6 +100,7 @@ def manual_preprocess(data):
 
 
 # 🧩 Ganti bagian lama preprocessing kamu:
+uploaded_file = st.file_uploader("Unggah file CSV atau Excel", type=["csv", "xlsx"])
 if uploaded_file:
     if uploaded_file.name.endswith(".csv"):
         data = pd.read_csv(uploaded_file)
