@@ -50,40 +50,6 @@ st.markdown(
 )
 st.markdown("---")
 
-uploaded_file = st.file_uploader("Unggah file CSV atau Excel", type=["csv", "xlsx"])
-if uploaded_file:
-    if uploaded_file.name.endswith(".csv"):
-        data = pd.read_csv(uploaded_file)
-    else:
-        data = pd.read_excel(uploaded_file)
-
-    mapping = {
-        'Kurang dari 1 jam': 0.5,
-        '1 - 2 jam': 1.5,
-        '3 - 5 jam': 4,
-        '6 - 8 jam': 7,
-        'Lebih dari 12 jam': 12,
-        'Selalu': 4,
-        'Sering': 3,
-        'Kadang-kadang': 2,
-        'Jarang': 1,
-        'Tidak pernah': 0,
-        'Sangat penting': 4,
-        'Penting': 3,
-        'Cukup penting': 2,
-        'Tidak terlalu penting': 1,
-        'Ya': 1,
-        'Tidak': 0,
-        'Sangat seimbang': 4,
-        'Seimbang': 3,
-        'Kurang seimbang': 2,
-        'Tidak seimbang': 1
-    }
-
-    for col in data.columns:
-        if data[col].dtype == 'object':
-            data[col] = data[col].map(mapping)
-
 def manual_preprocess(data):
     # 1️⃣ Mapping teks ke angka
     mapping = {
