@@ -57,9 +57,6 @@ if uploaded_file:
     else:
         data = pd.read_excel(uploaded_file)
 
-    st.subheader("📂 Data yang Diunggah")
-    st.dataframe(data, use_container_width=True)
-
     mapping = {
         'Kurang dari 1 jam': 0.5,
         '1 - 2 jam': 1.5,
