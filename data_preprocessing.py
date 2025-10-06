@@ -65,6 +65,10 @@ def manual_preprocess_baseline(data: pd.DataFrame):
         "lebih dari 12 jam": 12.5,
         # Frekuensi
         "selalu": 4, "sering": 3, "kadang-kadang": 2, "jarang": 1, "tidak pernah": 0,
+        "jarang (1 - 2 kali per semester)": 1,
+        "kadang (1 - 2 kali per bulan)": 2,
+        "sering (1 - 2 kali per minggu)": 3,
+        "setiap hari": 4,
         # Penting
         "sangat penting": 4, "penting": 3, "cukup penting": 2, "tidak terlalu penting": 1,
         # Boolean
@@ -162,6 +166,10 @@ def manual_preprocess_v2(
         "6 - 8 jam": 7.0, "6-8 jam": 7.0,
         "9 - 12 jam": 10.5, "9-12 jam": 10.5,
         "lebih dari 12 jam": 12.5,
+        "jarang (1 - 2 kali per semester)": 1,
+        "kadang (1 - 2 kali per bulan)": 2,
+        "sering (1 - 2 kali per minggu)": 3,
+        "setiap hari": 4,
         "selalu": 4, "sering": 3, "kadang-kadang": 2, "jarang": 1, "tidak pernah": 0,
         "sangat penting": 4, "penting": 3, "cukup penting": 2, "tidak terlalu penting": 1,
         "ya": 1, "tidak": 0, "iya": 1, "nggak": 0,
