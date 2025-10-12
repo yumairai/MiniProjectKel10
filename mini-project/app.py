@@ -209,7 +209,7 @@ def main():
                         # --- Tentukan prioritas utama ---
                         selisih = mean_akademik_fix - mean_nonak_fix
 
-                        threshold_selisih = 0.15
+                        threshold_selisih = 0.1
                         threshold_ak_tinggi = 0.5
                         threshold_nonak_tinggi = 0.45
 
