@@ -253,26 +253,26 @@ def main():
                             warna = "???"
                         else: warna = "🟢" if selaras else "🔴"
                     
-                    desc_dict = {
-                        "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
-                        "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
-                        "Seimbang (Aktif)": "⚖️ Aktif di dua sisi — akademik dan non-akademik berjalan beriringan.",
-                        "Seimbang (Pasif)": "🌙 Kegiatan relatif seimbang tapi intensitasnya tidak terlalu tinggi.",
-                        "Netral": "💤 Tidak menunjukkan kecenderungan yang kuat ke salah satu bidang."
-                    }
+                        desc_dict = {
+                            "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
+                            "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
+                            "Seimbang (Aktif)": "⚖️ Aktif di dua sisi — akademik dan non-akademik berjalan beriringan.",
+                            "Seimbang (Pasif)": "🌙 Kegiatan relatif seimbang tapi intensitasnya tidak terlalu tinggi.",
+                            "Netral": "💤 Tidak menunjukkan kecenderungan yang kuat ke salah satu bidang."
+                        }
 
-                    descriptions = desc_dict.get(kecendrungan, "Deskripsi tidak tersedia.")
-                    rows = []
-                    for cluster_id, count in cluster_counts.items():
-                        rows.append({
-                            "Cluster": int(cluster_id),
-                            "Jumlah": int(count),
-                            "Kecenderungan": kecendrungan,
-                            "Deskripsi": descriptions
-                        })
-                    df_desc = pd.DataFrame(rows).sort_values("Cluster")
-                    st.dataframe(df_desc, use_container_width=True)
-                    st.info(f"Total data: **{len(df_km)}**")
+                        descriptions = desc_dict.get(kecendrungan, "Deskripsi tidak tersedia.")
+                        rows = []
+                        for cluster_id, count in cluster_counts.items():
+                            rows.append({
+                                "Cluster": int(cluster_id),
+                                "Jumlah": int(count),
+                                "Kecenderungan": kecendrungan,
+                                "Deskripsi": descriptions
+                            })
+                        df_desc = pd.DataFrame(rows).sort_values("Cluster")
+                        st.dataframe(df_desc, use_container_width=True)
+                        st.info(f"Total data: **{len(df_km)}**")
 
                     # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
