@@ -186,12 +186,12 @@ def main():
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_akademik - mean_nonak
-                        threshold_selisih = 0.5  # ambang batas beda signifikan
-                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa diubah sesuai skala kamu)
+                        threshold_selisih = 0.6  # ambang batas beda signifikan
+                        threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah sesuai skala kamu)
 
-                        if selisih > threshold_selisih and mean_akademik > threshold_tinggi:
+                        if selisih > threshold_selisih:
                             prioritas = "Akademik"
-                        elif selisih < -threshold_selisih and mean_nonak > threshold_tinggi:
+                        elif selisih < -threshold_selisih:
                             prioritas = "Non-Akademik"
                         elif abs(selisih) <= threshold_selisih and mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
                             prioritas = "Seimbang Tinggi"
@@ -213,17 +213,25 @@ def main():
                             if col in df_cluster.columns:
                                 detail_aspek[label] = df_cluster[col].mean()
 
-                        # Ambil aktivitas dominan
+                        # --- Ambil hingga 3 aktivitas dominan ---
                         if detail_aspek:
-                            aktivitas_dominan = max(detail_aspek.items(), key=lambda x: x[1])[0]
+                            # Urutkan dari yang tertinggi ke terendah
+                            top_aktivitas = sorted(detail_aspek.items(), key=lambda x: x[1], reverse=True)[:3]
+                            aktivitas_dominan_list = [a[0] for a in top_aktivitas]
+                            aktivitas_dominan_str = ", ".join(aktivitas_dominan_list)
                         else:
-                            aktivitas_dominan = "Tidak terdeteksi"
+                            aktivitas_dominan_list = []
+                            aktivitas_dominan_str = "Tidak terdeteksi"
 
                         # --- Cek keselarasan antara prioritas dan aktivitas dominan ---
                         selaras = False
-                        if prioritas == "Akademik" and any(k in aktivitas_dominan.lower() for k in ["belajar", "akademik"]):
+                        if prioritas == "Akademik" and any(
+                            any(k in act.lower() for k in ["belajar", "akademik"]) for act in aktivitas_dominan_list
+                        ):
                             selaras = True
-                        elif prioritas == "Non-Akademik" and any(k in aktivitas_dominan.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]):
+                        elif prioritas == "Non-Akademik" and any(
+                            any(k in act.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]) for act in aktivitas_dominan_list
+                        ):
                             selaras = True
 
                         warna = "🟢" if selaras else "🔴"
@@ -234,9 +242,10 @@ def main():
                         - 🎓 Rata-rata Akademik: `{mean_akademik:.2f}`
                         - 🏛️ Rata-rata Non-Akademik: `{mean_nonak:.2f}`
                         - ⚖️ Prioritas: **{prioritas}**
-                        - 🧩 Aktivitas Dominan: **{aktivitas_dominan}**
+                        - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
+
 
 
 
