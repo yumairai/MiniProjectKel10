@@ -1,3 +1,7 @@
+import re
+import numpy as np
+import pandas as pd
+
 def manual_preprocess_v2(
     data: pd.DataFrame,
     drop_cols=("timestamp", "date", "email", "nama", "name", "semester"),
