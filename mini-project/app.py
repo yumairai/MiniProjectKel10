@@ -221,7 +221,7 @@ def main():
                             # dua-duanya relatif seimbang
                             if mean_akademik_fix > threshold_ak_tinggi and mean_nonak_fix > threshold_nonak_tinggi:
                                 prioritas = "Seimbang (Aktif)"
-                            elif mean_akademik_fix < threshold_ak_tinggi and mean_nonak_fix < threshold_nonak_tinggi:
+                            elif mean_akademik_fix < threshold_ak_tinggi or mean_nonak_fix < threshold_nonak_tinggi:
                                 prioritas = "Seimbang (Pasif)"
                             else:
                                 prioritas = "Netral"
