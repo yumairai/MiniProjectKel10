@@ -173,30 +173,51 @@ def main():
                         mean_nonak = df_cluster[nonak_cols].mean().mean() if len(nonak_cols) > 0 else 0
 
                         # Tentukan kecenderungan berdasarkan nilai rata-rata
-                        if mean_akademik > mean_nonak + 0.5:
-                            kecenderungan = "Akademik-Fokus"
-                        elif mean_nonak > mean_akademik + 0.5:
-                            kecenderungan = "Non-Akademik"
+                        # --- Menentukan kecenderungan berdasarkan nilai dan selisih ---
+                        selisih = mean_akademik - mean_nonak
+                        threshold_selisih = 0.5  # ambang selisih signifikan
+                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa kamu ubah)
+
+                        if selisih > threshold_selisih and mean_akademik > threshold_tinggi:
+                            kecenderungan = "Academic-Oriented"
+                        elif selisih < -threshold_selisih and mean_nonak > threshold_tinggi:
+                            kecenderungan = "Non Academic-Oriented"
+                        elif abs(selisih) <= threshold_selisih and mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
+                            kecenderungan = "All-Rounder"
                         else:
-                            kecenderungan = "Seimbang"
+                            kecenderungan = "Balanced"
 
-                        # Deteksi aktivitas dominan (3 teratas)
+
+                        # Pilih kolom yang dianggap aktivitas utama
+                        kolom_aktivitas = {
+                            "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?": "Belajar Mandiri",
+                            "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?": "Kegiatan Akademik Tambahan",
+                            "Apakah kamu aktif mengikuti organisasi/UKM di kampus?": "Keaktifan Organisasi",
+                            "Berapa jam rata-rata per minggu untuk organisasi/UKM?": "Waktu Organisasi",
+                            "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?": "Waktu Hobi/Pekerjaan"
+                        }
+
+                        # Hitung rata-rata hanya dari kolom yang dipilih
                         detail_aspek = {}
-                        for col in df_cluster.columns:
-                            if col not in ["cluster"]:
-                                detail_aspek[col] = df_cluster[col].mean()
+                        for col, label in kolom_aktivitas.items():
+                            if col in df_cluster.columns:
+                                detail_aspek[label] = df_cluster[col].mean()
 
-                        top3 = sorted(detail_aspek.items(), key=lambda x: x[1], reverse=True)[:3]
-                        aktivitas_dominan = [c for c, v in top3]
+                        # Ambil aktivitas dominan (nilai tertinggi)
+                        aktivitas_dominan = max(detail_aspek.items(), key=lambda x: x[1])[0]
 
-                        # Cek keselarasan antara kecenderungan & aktivitas dominan
+                        # Cek keselarasan
                         selaras = False
-                        if "belajar" in " ".join(aktivitas_dominan).lower() and "Akademik" in kecenderungan:
+                        if any(k in aktivitas_dominan.lower() for k in ["belajar", "akademik"]) and "Akademik" in kecenderungan:
                             selaras = True
-                        elif any(k in " ".join(aktivitas_dominan).lower() for k in ["ukm", "organisasi", "kerja"]) and "Non" in kecenderungan:
+                        elif any(k in aktivitas_dominan.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]) and "Non" in kecenderungan:
                             selaras = True
 
                         warna = "🟢" if selaras else "🔴"
+
+                        # tampilkan hasil
+                        st.markdown(f"**Aktivitas Dominan:** {aktivitas_dominan} {warna}")
+
 
                         # Tampilkan hasil
                         st.markdown(f"""
