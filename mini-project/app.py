@@ -66,7 +66,10 @@ def main():
         df_for_cluster = None
         src_km = st.radio("Pilih sumber data KMeans", ["Gunakan hasil Preprocessing", "Upload file baru"], horizontal=True, key="src_km")
         if src_km == "Gunakan hasil Preprocessing":
-            if "clean_imputed" in st.session_state:
+            if "X_scaled" in st.session_state:
+                df_for_cluster = st.session_state["X_scaled"].copy()
+            elif "clean_imputed" in st.session_state:
+                st.warning("⚠️ Data belum diskalakan, menggunakan clean_imputed sebagai cadangan.")
                 df_for_cluster = st.session_state["clean_imputed"].copy()
             else:
                 st.warning("Silakan proses data di Tab Preprocessing terlebih dahulu.")
