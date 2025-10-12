@@ -142,8 +142,17 @@ def main():
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
 
+                    # Mapping nama kolom → label pendek
+                    nama_singkat = {
+                        "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?": "Belajar Mandiri",
+                        "Berapa jam rata-rata per minggu kamu gunakan untuk kegiatan organisasi/UKM?": "Organisasi/UKM",
+                        "Seberapa sering kamu mengerjakan tugas tepat waktu?": "Tugas Tepat Waktu",
+                        "Berapa jam rata-rata per minggu kamu gunakan untuk bekerja part-time?": "Kerja Part-Time",
+                        "Berapa jam rata-rata per minggu kamu gunakan untuk kegiatan akademik (kuliah/tugas)?": "Kegiatan Akademik",
+                    }
+
                     akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
-                    nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "pekerjaan", "nonakademik", "kerja"])]
+                    nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "kerja", "nonakademik"])]
 
                     rows = []
                     for cluster_id, count in cluster_counts.items():
@@ -151,11 +160,18 @@ def main():
                         akademik_mean = df_cluster[akademik_cols].mean().mean() if len(akademik_cols) > 0 else 0
                         nonak_mean = df_cluster[nonakademik_cols].mean().mean() if len(nonakademik_cols) > 0 else 0
 
-                        detail_aspek = {col: df_cluster[col].mean() for col in df_cluster.columns if col != "cluster"}
+                        # Ganti nama kolom panjang jadi versi pendek
+                        detail_aspek = {}
+                        for col in df_cluster.columns:
+                            if col != "cluster":
+                                nama_display = nama_singkat.get(col, col[:25] + "...")
+                                detail_aspek[nama_display] = df_cluster[col].mean()
+
                         sorted_aspek = sorted(detail_aspek.items(), key=lambda x: x[1], reverse=True)
                         top3 = [f"{k}: {v:.2f}" for k, v in sorted_aspek[:3]]
                         top3_text = ", ".join(top3)
 
+                        # Tentukan kecenderungan utama
                         if akademik_mean > nonak_mean + 0.5:
                             kecenderungan = "Akademik-Fokus"
                         elif nonak_mean > akademik_mean + 0.5:
