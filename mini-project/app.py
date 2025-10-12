@@ -78,6 +78,7 @@ def main():
         if df_for_cluster is not None:
             st.write("Preview data:")
             st.dataframe(df_for_cluster.head(124))
+            df_for_analysis = df_for_cluster.copy()
             cols_to_drop = [c for c in df_for_cluster.columns if "mean" in c.lower()]
             if cols_to_drop:
                 df_for_cluster = df_for_cluster.drop(columns=cols_to_drop)
@@ -172,8 +173,8 @@ def main():
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
 
                         # 💡 langsung pakai nilai mean dari preprocessing
-                        mean_akademik = df_cluster["mean_akademik"].mean()
-                        mean_nonak = df_cluster["mean_nonak"].mean()
+                        mean_akademik = df_for_analysis["mean_akademik"].mean()
+                        mean_nonak = df_for_analysis["mean_nonak"].mean()
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_akademik - mean_nonak
