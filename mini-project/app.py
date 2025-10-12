@@ -160,43 +160,33 @@ def main():
                     # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
-                    # Kelompok kolom berdasar kategori
-                    akademik_cols = [
-                        "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?",
-                        "Seberapa sering kamu mengerjakan tugas tepat waktu?",
-                        "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?",
-                        "Bagaimana tingkat prioritasmu terhadap IPK?"
-                    ]
+                    # --- Ambang batas
+                    threshold_selisih = 0.6
+                    threshold_tinggi = 2.0
 
-                    nonak_cols = [
-                        "Apakah kamu aktif mengikuti organisasi/UKM di kampus?",
-                        "Berapa jam rata-rata per minggu untuk organisasi/UKM?",
-                        "Apakah kamu bekerja part-time/freelance?",
-                        "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?",
-                        "Seberapa penting kegiatan non-akademik bagimu?"
-                    ]
-
-                    # Loop tiap cluster untuk menampilkan detail
+                    # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
 
-                        # Hitung rata-rata tiap kategori
-                        mean_akademik = df_cluster[akademik_cols].mean().mean()
-                        mean_nonak = df_cluster[nonak_cols].mean().mean()
+                        # 💡 langsung pakai nilai mean dari preprocessing
+                        mean_akademik = df_cluster["mean_akademik"].mean()
+                        mean_nonak = df_cluster["mean_nonak"].mean()
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_akademik - mean_nonak
-                        threshold_selisih = 0.6  # ambang batas beda signifikan
-                        threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah sesuai skala kamu)
 
                         if selisih > threshold_selisih:
                             prioritas = "Akademik"
                         elif selisih < -threshold_selisih:
                             prioritas = "Non-Akademik"
-                        elif abs(selisih) <= threshold_selisih and mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
-                            prioritas = "Seimbang Tinggi"
                         else:
-                            prioritas = "Netral"
+                            # dua-duanya relatif seimbang
+                            if mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
+                                prioritas = "Seimbang (Aktif)"
+                            elif mean_akademik < threshold_tinggi and mean_nonak < threshold_tinggi:
+                                prioritas = "Seimbang (Pasif)"
+                            else:
+                                prioritas = "Netral"
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
