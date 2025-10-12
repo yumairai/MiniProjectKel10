@@ -174,8 +174,8 @@ def main():
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_ipk - mean_nonak
-                        threshold_selisih = 0.5  # ambang batas beda signifikan
-                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa diubah)
+                        threshold_selisih = 0.3  # ambang batas beda signifikan
+                        threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah)
 
                         if selisih > threshold_selisih and mean_ipk > threshold_tinggi:
                             prioritas = "Akademik"
@@ -219,7 +219,7 @@ def main():
                         # --- Tampilkan hasil ---
                         st.markdown(f"""
                         **Cluster {cluster_id}**
-                        - 🎓 Rata-rata IPK: `{mean_ipk:.2f}`
+                        - 🎓 Rata-rata Akademik: `{mean_ipk:.2f}`
                         - 🏛️ Rata-rata Non-Akademik: `{mean_nonak:.2f}`
                         - ⚖️ Prioritas: **{prioritas}**
                         - 🧩 Aktivitas Dominan: **{aktivitas_dominan}**
