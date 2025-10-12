@@ -252,7 +252,7 @@ def main():
                             selaras = True
 
                         if sama:
-                            warna = "???"
+                            warna = "❓"
                         else: warna = "🟢" if selaras else "🔴"
                     
                         hasil_results[cluster_id] = {
@@ -308,10 +308,10 @@ def main():
                         st.markdown(f"""
                             **Cluster {cluster_id}**
                             - 🎓 Rata-rata Akademik: `{ak:.2f}`
-                            - 🏛️ Rata-rata Non-Akademik: `{nonak:.2f}`
-                            - ⚖️ Prioritas: **{pri}**
+                            - 👥 Rata-rata Non-Akademik: `{nonak:.2f}`
+                            - 🎯 Prioritas: **{pri}**
                             - ⚖️ Kecendrungan: **{kec}**
-                            - 🧩 Aktivitas Dominan (Top 3): **{dom}**
+                            - ⌛ Aktivitas Dominan (Top 3): **{dom}**
                             - {warna} Keselarasan: **{'Selaras' if slr else 'Tidak Selaras'}**
                             """)
 
