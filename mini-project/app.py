@@ -188,7 +188,7 @@ def main():
                             kecenderungan = "Balanced"
 
 
-                        # Pilih kolom yang dianggap aktivitas utama
+                        # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
                             "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?": "Belajar Mandiri",
                             "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?": "Kegiatan Akademik Tambahan",
@@ -197,14 +197,17 @@ def main():
                             "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?": "Waktu Hobi/Pekerjaan"
                         }
 
-                        # Hitung rata-rata hanya dari kolom yang dipilih
+                        # Hitung rata-rata untuk tiap kolom yang ada di cluster
                         detail_aspek = {}
                         for col, label in kolom_aktivitas.items():
                             if col in df_cluster.columns:
                                 detail_aspek[label] = df_cluster[col].mean()
 
                         # Ambil aktivitas dominan (nilai tertinggi)
-                        aktivitas_dominan = max(detail_aspek.items(), key=lambda x: x[1])[0]
+                        if detail_aspek:
+                            aktivitas_dominan = max(detail_aspek.items(), key=lambda x: x[1])[0]
+                        else:
+                            aktivitas_dominan = "Tidak terdeteksi"
 
                         # Cek keselarasan
                         selaras = False
@@ -215,18 +218,14 @@ def main():
 
                         warna = "🟢" if selaras else "🔴"
 
-                        # tampilkan hasil
-                        st.markdown(f"**Aktivitas Dominan:** {aktivitas_dominan} {warna}")
-
-
                         # Tampilkan hasil
                         st.markdown(f"""
                         **Cluster {cluster_id}**
                         - 🎓 Rata-rata Akademik: `{mean_akademik:.2f}`
                         - 🎯 Rata-rata Non-Akademik: `{mean_nonak:.2f}`
                         - ⚖️ Kecenderungan: **{kecenderungan}**
-                        - 🧩 Aktivitas Dominan: {", ".join(aktivitas_dominan[:3])}
-                        - {warna} Keselarasan: {'Selaras' if selaras else 'Tidak Selaras'}
+                        - 🧩 Aktivitas Dominan: **{aktivitas_dominan}**
+                        - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
 
                     st.markdown("---")
