@@ -157,31 +157,43 @@ def main():
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
 
-                    # === Tambahan: Analisis Detail Tiap Cluster ===
+                    # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
-                    # Tentukan kolom akademik & non-akademik
-                    akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ipk", "belajar", "tugas", "akademik"])]
-                    nonak_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "kerja", "nonakademik"])]
+                    # Kelompok kolom berdasar kategori
+                    akademik_cols = [
+                        "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?",
+                        "Seberapa sering kamu mengerjakan tugas tepat waktu?",
+                        "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?",
+                        "Bagaimana tingkat prioritasmu terhadap IPK?"
+                    ]
+
+                    nonak_cols = [
+                        "Apakah kamu aktif mengikuti organisasi/UKM di kampus?",
+                        "Berapa jam rata-rata per minggu untuk organisasi/UKM?",
+                        "Apakah kamu bekerja part-time/freelance?",
+                        "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?",
+                        "Seberapa penting kegiatan non-akademik bagimu?"
+                    ]
 
                     # Loop tiap cluster untuk menampilkan detail
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
 
-                        # Hitung rata-rata prioritas akademik dan non-akademik
-                        mean_ipk = df_cluster[[c for c in df_cluster.columns if "ipk" in c.lower()]].mean().mean() if any("ipk" in c.lower() for c in df_cluster.columns) else 0
-                        mean_nonak = df_cluster[nonak_cols].mean().mean() if len(nonak_cols) > 0 else 0
+                        # Hitung rata-rata tiap kategori
+                        mean_akademik = df_cluster[akademik_cols].mean().mean()
+                        mean_nonak = df_cluster[nonak_cols].mean().mean()
 
                         # --- Tentukan prioritas utama ---
-                        selisih = mean_ipk - mean_nonak
-                        threshold_selisih = 0.6  # ambang batas beda signifikan
-                        threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah)
+                        selisih = mean_akademik - mean_nonak
+                        threshold_selisih = 0.5  # ambang batas beda signifikan
+                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa diubah sesuai skala kamu)
 
-                        if selisih > threshold_selisih:
+                        if selisih > threshold_selisih and mean_akademik > threshold_tinggi:
                             prioritas = "Akademik"
-                        elif selisih < -threshold_selisih:
+                        elif selisih < -threshold_selisih and mean_nonak > threshold_tinggi:
                             prioritas = "Non-Akademik"
-                        elif abs(selisih) <= threshold_selisih and mean_ipk > threshold_tinggi and mean_nonak > threshold_tinggi:
+                        elif abs(selisih) <= threshold_selisih and mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
                             prioritas = "Seimbang Tinggi"
                         else:
                             prioritas = "Netral"
@@ -195,7 +207,7 @@ def main():
                             "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?": "Waktu Hobi/Pekerjaan"
                         }
 
-                        # Hitung rata-rata untuk tiap kolom aktivitas di cluster
+                        # Hitung rata-rata untuk tiap aktivitas
                         detail_aspek = {}
                         for col, label in kolom_aktivitas.items():
                             if col in df_cluster.columns:
@@ -219,12 +231,13 @@ def main():
                         # --- Tampilkan hasil ---
                         st.markdown(f"""
                         **Cluster {cluster_id}**
-                        - 🎓 Rata-rata Akademik: `{mean_ipk:.2f}`
+                        - 🎓 Rata-rata Akademik: `{mean_akademik:.2f}`
                         - 🏛️ Rata-rata Non-Akademik: `{mean_nonak:.2f}`
                         - ⚖️ Prioritas: **{prioritas}**
                         - 🧩 Aktivitas Dominan: **{aktivitas_dominan}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
+
 
 
                     st.markdown("---")
