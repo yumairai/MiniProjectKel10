@@ -174,12 +174,12 @@ def main():
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_ipk - mean_nonak
-                        threshold_selisih = 0.3  # ambang batas beda signifikan
+                        threshold_selisih = 0.1  # ambang batas beda signifikan
                         threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah)
 
-                        if selisih > threshold_selisih and mean_ipk > threshold_tinggi:
+                        if selisih > threshold_selisih:
                             prioritas = "Akademik"
-                        elif selisih < -threshold_selisih and mean_nonak > threshold_tinggi:
+                        elif selisih < -threshold_selisih:
                             prioritas = "Non-Akademik"
                         elif abs(selisih) <= threshold_selisih and mean_ipk > threshold_tinggi and mean_nonak > threshold_tinggi:
                             prioritas = "Seimbang Tinggi"
