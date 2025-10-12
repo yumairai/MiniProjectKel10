@@ -142,6 +142,18 @@ def main():
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
 
+                    # Kelompok kolom berdasarkan kategori (bisa kamu sesuaikan)
+                    akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
+                    nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "pekerjaan", "nonakademik", "kerja"])]
+
+                    # Deskripsi manual default
+                    descriptions = {
+                        0: "Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
+                        1: "Balanced: Cukup aktif di akademik & non-akademik.",
+                        2: "Non Academic-Oriented: Aktif di UKM/organisasi, tapi belajar minim.",
+                        3: "Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
+                    }
+
                     # --- deteksi kolom akademik & non-akademik ---
                     akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
                     nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "kerja", "nonakademik"])]
