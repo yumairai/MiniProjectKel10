@@ -178,9 +178,7 @@ def manual_preprocess_v2(
         "n_rows": int(X_scaled.shape[0]),
         "n_features": int(X_scaled.shape[1]),
         "outlier_strategy": outlier,
-        "scale": scale,
-        "akademik_used": akademik_exist,
-        "nonak_used": nonak_exist,
+        "scale": scale
     }
 
     return df_num, X_scaled, report
