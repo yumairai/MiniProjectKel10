@@ -167,10 +167,6 @@ def main():
                     # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
-                    # --- Ambang batas
-                    threshold_selisih = 0.6
-                    threshold_tinggi = 2.0
-
                     # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
@@ -189,6 +185,16 @@ def main():
                             "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?",
                             "Seberapa penting kegiatan non-akademik bagimu?"
                         ]
+
+                        # Hitung rata-rata dua kolom per cluster
+                        mean_ipk = df_cluster["Bagaimana tingkat prioritasmu terhadap IPK?"].mean()
+                        mean_nonak = df_cluster["Seberapa penting kegiatan non-akademik bagimu?"].mean()
+
+                        # Bandingkan untuk tentukan prioritas dominan
+                        if mean_ipk > mean_nonak:
+                            prioritas = "Akademik"
+                        else:
+                            prioritas = "Non-Akademik"
 
                         # --- Ambil kolom akademik & non-akademik yang ada ---
                         akademik_exist = [c for c in akademik_cols if c in df_cluster.columns]
@@ -214,17 +220,17 @@ def main():
                         threshold_nonak_tinggi = 0.45
 
                         if selisih > threshold_selisih:
-                            prioritas = "Akademik"
+                            kecendrungan = "Akademik"
                         elif selisih < -threshold_selisih:
-                            prioritas = "Non-Akademik"
+                            kecendrungan = "Non-Akademik"
                         else:
                             # dua-duanya relatif seimbang
                             if mean_akademik_fix > threshold_ak_tinggi and mean_nonak_fix > threshold_nonak_tinggi:
-                                prioritas = "Seimbang (Aktif)"
+                                kecendrungan = "Seimbang (Aktif)"
                             elif mean_akademik_fix < threshold_ak_tinggi or mean_nonak_fix < threshold_nonak_tinggi:
-                                prioritas = "Seimbang (Pasif)"
+                                kecendrungan = "Seimbang (Pasif)"
                             else:
-                                prioritas = "Netral"
+                                kecendrungan = "Netral"
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
@@ -253,16 +259,17 @@ def main():
 
                         # --- Cek keselarasan antara prioritas dan aktivitas dominan ---
                         selaras = False
-                        if prioritas == "Akademik" and any(
-                            any(k in act.lower() for k in ["belajar", "akademik"]) for act in aktivitas_dominan_list
-                        ):
+                        sama = False
+                        if prioritas == "Akademik" and kecendrungan == "Akademik":
                             selaras = True
-                        elif prioritas == "Non-Akademik" and any(
-                            any(k in act.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]) for act in aktivitas_dominan_list
-                        ):
+                        elif prioritas == "Non-Akademik" and kecendrungan == "Non-Akademik":
                             selaras = True
+                        else: sama = True
 
-                        warna = "🟢" if selaras else "🔴"
+                        if sama:
+                            warna = "???"
+                        else: warna = "🟢" if selaras else "🔴"
+
 
                         # --- Tampilkan hasil ---
                         st.markdown(f"""
@@ -270,6 +277,7 @@ def main():
                         - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
                         - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
                         - ⚖️ Prioritas: **{prioritas}**
+                        - ⚖️ Kecendrungan: **{kecendrungan}**
                         - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
