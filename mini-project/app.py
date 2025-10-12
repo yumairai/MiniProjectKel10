@@ -311,8 +311,8 @@ def main():
                             - 🏛️ Rata-rata Non-Akademik: `{nonak:.2f}`
                             - ⚖️ Prioritas: **{pri}**
                             - ⚖️ Kecendrungan: **{kec}**
-                            - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
-                            - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
+                            - 🧩 Aktivitas Dominan (Top 3): **{dom}**
+                            - {warna} Keselarasan: **{'Selaras' if slr else 'Tidak Selaras'}**
                             """)
 
                     st.markdown("---")
