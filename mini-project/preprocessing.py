@@ -2,6 +2,52 @@ import re
 import numpy as np
 import pandas as pd
 
+# -----------------------------------------------
+# ============== PREPROCESSING UTILS =============
+# -----------------------------------------------
+
+def normalize_colnames(cols):
+    """Rapikan nama kolom: hilangkan spasi berlebih dan trim."""
+    return [re.sub(r"\s+", " ", str(c)).strip() for c in cols]
+
+def normalize_text_series(s: pd.Series) -> pd.Series:
+    """Normalisasi string: lowercase, trim, samakan en-dash -> hyphen, rapikan spasi."""
+    s = s.astype(str).str.strip().str.lower()
+    s = s.str.replace("\u2013", "-", regex=False)  # en-dash -> hyphen
+    s = s.str.replace(r"\s+", " ", regex=True)
+    return s
+
+def parse_range_midpoint(s: pd.Series) -> pd.Series:
+    """Parse rentang 'x - y' menjadi midpoint (float). Contoh: '3 - 5 jam' -> 4.0"""
+    s_str = s.astype(str)
+    m = s_str.str.extract(r"(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)")
+    has_range = m[0].notna() & m[1].notna()
+    midpoint = m[has_range].astype(float).mean(axis=1)
+    out = s.copy()
+    out.loc[has_range] = midpoint
+    return out
+
+# -----------------------------------------------
+# ============ PREPROCESSING FUNCTIONS ===========
+# -----------------------------------------------
+
+def manual_preprocess_baseline(data: pd.DataFrame):
+    """
+    Fungsi preprocessing baseline (untuk digunakan jika diminta)
+    - Drop kolom yang tidak relevan
+    - Normalisasi kolom numerik, dan lainnya
+    """
+    df = data.copy()
+    drop_cols = ["timestamp", "date", "email", "nama", "name", "semester"]
+    df = df.drop(columns=[col for col in df.columns if col in drop_cols])
+
+    df.columns = normalize_colnames(df.columns)
+    for c in df.select_dtypes("object").columns:
+        df[c] = normalize_text_series(df[c])
+
+    df = df.fillna(df.median(numeric_only=True))
+    return df
+
 def manual_preprocess_v2(
     data: pd.DataFrame,
     drop_cols=("timestamp", "date", "email", "nama", "name", "semester"),
@@ -152,3 +198,4 @@ def manual_preprocess_v2(
     }
 
     return df_num, X_scaled, report
+
