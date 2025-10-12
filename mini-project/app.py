@@ -287,17 +287,18 @@ def main():
                     # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
-
+                    for cluster_id in sorted(cluster_counts.index):
+                        df_cluster = df_km[df_km["cluster"] == cluster_id]
                         # --- Tampilkan hasil ---
-                    st.markdown(f"""
-                        **Cluster {cluster_id}**
-                        - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
-                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
-                        - ⚖️ Prioritas: **{prioritas}**
-                        - ⚖️ Kecendrungan: **{kecendrungan}**
-                        - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
-                        - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
-                        """)
+                        st.markdown(f"""
+                            **Cluster {cluster_id}**
+                            - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
+                            - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
+                            - ⚖️ Prioritas: **{prioritas}**
+                            - ⚖️ Kecendrungan: **{kecendrungan}**
+                            - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
+                            - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
+                            """)
 
                     st.markdown("---")
 
