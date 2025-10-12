@@ -157,36 +157,34 @@ def main():
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
 
-                                        # === Tambahan: Analisis Detail Tiap Cluster ===
-                    st.markdown("### 🔍 Analisis Detail Tiap Cluster")
+                    # === Tambahan: Analisis Detail Tiap Cluster ===
+                    st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
-                    # Tentukan kategori kolom akademik & non-akademik
-                    akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
+                    # Tentukan kolom akademik & non-akademik
+                    akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ipk", "belajar", "tugas", "akademik"])]
                     nonak_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "kerja", "nonakademik"])]
 
                     # Loop tiap cluster untuk menampilkan detail
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
 
-                        # Hitung nilai rata-rata tiap kategori
-                        mean_akademik = df_cluster[akademik_cols].mean().mean() if len(akademik_cols) > 0 else 0
+                        # Hitung rata-rata prioritas akademik dan non-akademik
+                        mean_ipk = df_cluster[[c for c in df_cluster.columns if "ipk" in c.lower()]].mean().mean() if any("ipk" in c.lower() for c in df_cluster.columns) else 0
                         mean_nonak = df_cluster[nonak_cols].mean().mean() if len(nonak_cols) > 0 else 0
 
-                        # Tentukan kecenderungan berdasarkan nilai rata-rata
-                        # --- Menentukan kecenderungan berdasarkan nilai dan selisih ---
-                        selisih = mean_akademik - mean_nonak
-                        threshold_selisih = 0.5  # ambang selisih signifikan
-                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa kamu ubah)
+                        # --- Tentukan prioritas utama ---
+                        selisih = mean_ipk - mean_nonak
+                        threshold_selisih = 0.5  # ambang batas beda signifikan
+                        threshold_tinggi = 3.0   # batas nilai dianggap tinggi (bisa diubah)
 
-                        if selisih > threshold_selisih and mean_akademik > threshold_tinggi:
-                            kecenderungan = "Academic-Oriented"
+                        if selisih > threshold_selisih and mean_ipk > threshold_tinggi:
+                            prioritas = "Akademik"
                         elif selisih < -threshold_selisih and mean_nonak > threshold_tinggi:
-                            kecenderungan = "Non Academic-Oriented"
-                        elif abs(selisih) <= threshold_selisih and mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
-                            kecenderungan = "All-Rounder"
+                            prioritas = "Non-Akademik"
+                        elif abs(selisih) <= threshold_selisih and mean_ipk > threshold_tinggi and mean_nonak > threshold_tinggi:
+                            prioritas = "Seimbang Tinggi"
                         else:
-                            kecenderungan = "Balanced"
-
+                            prioritas = "Netral"
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
@@ -197,36 +195,37 @@ def main():
                             "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?": "Waktu Hobi/Pekerjaan"
                         }
 
-                        # Hitung rata-rata untuk tiap kolom yang ada di cluster
+                        # Hitung rata-rata untuk tiap kolom aktivitas di cluster
                         detail_aspek = {}
                         for col, label in kolom_aktivitas.items():
                             if col in df_cluster.columns:
                                 detail_aspek[label] = df_cluster[col].mean()
 
-                        # Ambil aktivitas dominan (nilai tertinggi)
+                        # Ambil aktivitas dominan
                         if detail_aspek:
                             aktivitas_dominan = max(detail_aspek.items(), key=lambda x: x[1])[0]
                         else:
                             aktivitas_dominan = "Tidak terdeteksi"
 
-                        # Cek keselarasan
+                        # --- Cek keselarasan antara prioritas dan aktivitas dominan ---
                         selaras = False
-                        if any(k in aktivitas_dominan.lower() for k in ["belajar", "akademik"]) and "Akademik" in kecenderungan:
+                        if prioritas == "Akademik" and any(k in aktivitas_dominan.lower() for k in ["belajar", "akademik"]):
                             selaras = True
-                        elif any(k in aktivitas_dominan.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]) and "Non" in kecenderungan:
+                        elif prioritas == "Non-Akademik" and any(k in aktivitas_dominan.lower() for k in ["ukm", "organisasi", "hobi", "kerja"]):
                             selaras = True
 
                         warna = "🟢" if selaras else "🔴"
 
-                        # Tampilkan hasil
+                        # --- Tampilkan hasil ---
                         st.markdown(f"""
                         **Cluster {cluster_id}**
-                        - 🎓 Rata-rata Akademik: `{mean_akademik:.2f}`
-                        - 🎯 Rata-rata Non-Akademik: `{mean_nonak:.2f}`
-                        - ⚖️ Kecenderungan: **{kecenderungan}**
+                        - 🎓 Rata-rata IPK: `{mean_ipk:.2f}`
+                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak:.2f}`
+                        - ⚖️ Prioritas: **{prioritas}**
                         - 🧩 Aktivitas Dominan: **{aktivitas_dominan}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
+
 
                     st.markdown("---")
 
