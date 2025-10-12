@@ -270,9 +270,9 @@ def main():
                                 "Kecenderungan": kecendrungan,
                                 "Deskripsi": descriptions
                             })
-                        df_desc = pd.DataFrame(rows).sort_values("Cluster")
-                        st.dataframe(df_desc, use_container_width=True)
-                        st.info(f"Total data: **{len(df_km)}**")
+                    df_desc = pd.DataFrame(rows).sort_values("Cluster")
+                    st.dataframe(df_desc, use_container_width=True)
+                    st.info(f"Total data: **{len(df_km)}**")
 
                     # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
                     st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
