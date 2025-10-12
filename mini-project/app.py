@@ -147,7 +147,7 @@ def main():
                 if "km_df" in st.session_state and "cluster" in st.session_state["km_df"].columns:
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
-                    kecendrungan_results = {}
+                    hasil_results = {}
                     
                     # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
@@ -214,9 +214,6 @@ def main():
                             else:
                                 kecendrungan = "Netral"
                         
-                        kecendrungan_results[cluster_id] = {
-                                "kecendrungan": kecendrungan
-                        }
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
@@ -258,6 +255,16 @@ def main():
                             warna = "???"
                         else: warna = "🟢" if selaras else "🔴"
                     
+                        hasil_results[cluster_id] = {
+                                "kecendrungan": kecendrungan,
+                                "mean_ak" : mean_akademik_fix,
+                                "mean_nonak": mean_nonak_fix,
+                                "prioritas" : prioritas,
+                                "dominan" : aktivitas_dominan_str,
+                                "selaras" : selaras,
+                                "warna" : warna
+                        }
+                    
                     desc_dict = {
                         "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
                         "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
@@ -268,7 +275,7 @@ def main():
 
                     rows = []
                     for cluster_id, count in cluster_counts.items():
-                        hasil = kecendrungan_results.get(cluster_id, {})
+                        hasil = hasil_results.get(cluster_id, {})
                         kec = hasil.get("kecendrungan", "Tidak diketahui")
                         
                         descriptions = desc_dict.get(kec, "Deskripsi tidak tersedia.")
@@ -289,13 +296,21 @@ def main():
 
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
+                        hasil = hasil_results.get(cluster_id, {})
+                        kec = hasil.get("kecendrungan", "Tidak diketahui")
+                        ak = hasil.get("mean_ak", "Tidak diketahui")
+                        nonak = hasil.get("mean_nonak", "Tidak diketahui")
+                        pri = hasil.get("prioritas", "Tidak diketahui")
+                        dom = hasil.get("dominan", "Tidak diketahui")
+                        slr = hasil.get("selaras", "Tidak diketahui")
+                        warna = hasil.get("warna", "-")
                         # --- Tampilkan hasil ---
                         st.markdown(f"""
                             **Cluster {cluster_id}**
-                            - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
-                            - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
-                            - ⚖️ Prioritas: **{prioritas}**
-                            - ⚖️ Kecendrungan: **{kecendrungan}**
+                            - 🎓 Rata-rata Akademik: `{ak:.2f}`
+                            - 🏛️ Rata-rata Non-Akademik: `{nonak:.2f}`
+                            - ⚖️ Prioritas: **{pri}**
+                            - ⚖️ Kecendrungan: **{kec}**
                             - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
                             - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                             """)
