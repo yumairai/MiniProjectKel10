@@ -147,26 +147,7 @@ def main():
                 if "km_df" in st.session_state and "cluster" in st.session_state["km_df"].columns:
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
-                    descriptions = {
-                        0: "Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
-                        1: "Balanced: Cukup aktif di akademik & non-akademik.",
-                        2: "Non Academic-Oriented: Aktif di UKM/organisasi, tapi belajar minim.",
-                        3: "Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
-                    }
-                    rows = []
-                    for cluster_id, count in cluster_counts.items():
-                        rows.append({
-                            "Cluster": int(cluster_id),
-                            "Jumlah": int(count),
-                            "Deskripsi": descriptions.get(cluster_id, "Tidak ada deskripsi untuk cluster ini.")
-                        })
-                    df_desc = pd.DataFrame(rows).sort_values("Cluster")
-                    st.dataframe(df_desc, use_container_width=True)
-                    st.info(f"Total data: **{len(df_km)}**")
-
-                    # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
-                    st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
-
+                    
                     # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
@@ -271,10 +252,33 @@ def main():
                         if sama:
                             warna = "???"
                         else: warna = "🟢" if selaras else "🔴"
+                    
+                    desc_dict = {
+                        "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
+                        "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
+                        "Seimbang (Aktif)": "⚖️ Aktif di dua sisi — akademik dan non-akademik berjalan beriringan.",
+                        "Seimbang (Pasif)": "🌙 Kegiatan relatif seimbang tapi intensitasnya tidak terlalu tinggi.",
+                        "Netral": "💤 Tidak menunjukkan kecenderungan yang kuat ke salah satu bidang."
+                    }
+
+                    descriptions = desc_dict.get(kecendrungan, "Deskripsi tidak tersedia.")
+                    rows = []
+                    for cluster_id, count in cluster_counts.items():
+                        rows.append({
+                            "Cluster": int(cluster_id),
+                            "Jumlah": int(count),
+                            "Deskripsi": descriptions.get(cluster_id, "Tidak ada deskripsi untuk cluster ini.")
+                        })
+                    df_desc = pd.DataFrame(rows).sort_values("Cluster")
+                    st.dataframe(df_desc, use_container_width=True)
+                    st.info(f"Total data: **{len(df_km)}**")
+
+                    # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
+                    st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
 
 
                         # --- Tampilkan hasil ---
-                        st.markdown(f"""
+                    st.markdown(f"""
                         **Cluster {cluster_id}**
                         - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
                         - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
@@ -283,9 +287,6 @@ def main():
                         - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
                         """)
-
-
-
 
                     st.markdown("---")
 
