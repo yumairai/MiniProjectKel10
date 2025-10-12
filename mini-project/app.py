@@ -175,12 +175,39 @@ def main():
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
 
-                        # 💡 langsung pakai nilai mean dari preprocessing
-                        mean_akademik = df_for_analysis["mean_akademik"].mean()
-                        mean_nonak = df_for_analysis["mean_nonak"].mean()
+                        akademik_cols = [
+                            "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?",
+                            "Seberapa sering kamu mengerjakan tugas tepat waktu?",
+                            "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?",
+                            "Bagaimana tingkat prioritasmu terhadap IPK?"
+                        ]
+
+                        nonak_cols = [
+                            "Apakah kamu aktif mengikuti organisasi/UKM di kampus?",
+                            "Berapa jam rata-rata per minggu untuk organisasi/UKM?",
+                            "Apakah kamu bekerja part-time/freelance?",
+                            "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?",
+                            "Seberapa penting kegiatan non-akademik bagimu?"
+                        ]
+
+                        # --- Ambil kolom akademik & non-akademik yang ada ---
+                        akademik_exist = [c for c in akademik_cols if c in df_cluster.columns]
+                        nonak_exist = [c for c in nonak_cols if c in df_cluster.columns]
+
+                        # --- Hitung mean mentah per baris ---
+                        mean_akademik_raw = df_cluster[akademik_exist].mean(axis=1)
+                        mean_nonak_raw = df_cluster[nonak_exist].mean(axis=1)
+
+                        # --- Normalisasi manual ke skala 0–1 ---
+                        mean_akademik = (mean_akademik_raw - mean_akademik_raw.min()) / (mean_akademik_raw.max() - mean_akademik_raw.min())
+                        mean_nonak = (mean_nonak_raw - mean_nonak_raw.min()) / (mean_nonak_raw.max() - mean_nonak_raw.min())
+
+                        # --- Hitung rata-rata dalam cluster ---
+                        mean_akademik_fix = mean_akademik.mean()
+                        mean_nonak_fix = mean_nonak.mean()
 
                         # --- Tentukan prioritas utama ---
-                        selisih = mean_akademik - mean_nonak
+                        selisih = mean_akademik_fix - mean_nonak_fix
 
                         if selisih > threshold_selisih:
                             prioritas = "Akademik"
@@ -188,9 +215,9 @@ def main():
                             prioritas = "Non-Akademik"
                         else:
                             # dua-duanya relatif seimbang
-                            if mean_akademik > threshold_tinggi and mean_nonak > threshold_tinggi:
+                            if mean_akademik_fix > threshold_tinggi and mean_nonak_fix > threshold_tinggi:
                                 prioritas = "Seimbang (Aktif)"
-                            elif mean_akademik < threshold_tinggi and mean_nonak < threshold_tinggi:
+                            elif mean_akademik_fix < threshold_tinggi and mean_nonak_fix < threshold_tinggi:
                                 prioritas = "Seimbang (Pasif)"
                             else:
                                 prioritas = "Netral"

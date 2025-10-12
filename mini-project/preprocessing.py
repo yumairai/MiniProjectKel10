@@ -171,20 +171,6 @@ def manual_preprocess_v2(
     else:
         X_scaled = df_num.copy()
 
-    # --- Hitung rata-rata akademik & non-akademik ---
-    akademik_exist = [c for c in akademik_cols if c in X_scaled.columns]
-    nonak_exist = [c for c in nonak_cols if c in X_scaled.columns]
-
-    mean_akademik = X_scaled[akademik_exist].mean(axis=1)
-    mean_nonak = X_scaled[nonak_exist].mean(axis=1)
-
-    # --- Balancing: beri bobot ekstra pada non-akademik ---
-    mean_nonak *= 1.2
-
-    # --- Tambahkan kolom mean ke dataframe ---
-    X_scaled["mean_akademik"] = mean_akademik
-    X_scaled["mean_nonak"] = mean_nonak
-
     report = {
         "mode": "v2_with_balance",
         "dropped_cols": to_drop,
