@@ -142,48 +142,26 @@ def main():
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
 
-                    # Kelompok kolom berdasarkan kategori (bisa kamu sesuaikan)
                     akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
                     nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "pekerjaan", "nonakademik", "kerja"])]
-
-                    # Deskripsi manual default
-                    descriptions = {
-                        0: "Academic-Oriented: Fokus belajar, jarang ikut organisasi.",
-                        1: "Balanced: Cukup aktif di akademik & non-akademik.",
-                        2: "Non Academic-Oriented: Aktif di UKM/organisasi, tapi belajar minim.",
-                        3: "Busy All-Rounder: Aktif di akademik, organisasi, bahkan kerja part-time."
-                    }
-
-                    # --- deteksi kolom akademik & non-akademik ---
-                    akademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["belajar", "ipk", "tugas", "akademik"])]
-                    nonakademik_cols = [c for c in df_km.columns if any(k in c.lower() for k in ["ukm", "organisasi", "kerja", "nonakademik"])]
 
                     rows = []
                     for cluster_id, count in cluster_counts.items():
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
-
-                        # hitung rata-rata tiap aspek
                         akademik_mean = df_cluster[akademik_cols].mean().mean() if len(akademik_cols) > 0 else 0
                         nonak_mean = df_cluster[nonakademik_cols].mean().mean() if len(nonakademik_cols) > 0 else 0
 
-                        # deteksi aktivitas dominan
-                        detail_aspek = {}
-                        for col in df_cluster.columns:
-                            if col not in ["cluster"]:
-                                detail_aspek[col] = df_cluster[col].mean()
-
-                        # urutkan aspek dominan
+                        detail_aspek = {col: df_cluster[col].mean() for col in df_cluster.columns if col != "cluster"}
                         sorted_aspek = sorted(detail_aspek.items(), key=lambda x: x[1], reverse=True)
                         top3 = [f"{k}: {v:.2f}" for k, v in sorted_aspek[:3]]
                         top3_text = ", ".join(top3)
 
-                        # tentukan kecenderungan utama
                         if akademik_mean > nonak_mean + 0.5:
-                            kecenderungan = "Akademik-Fokus (IPK & belajar dominan)"
+                            kecenderungan = "Akademik-Fokus"
                         elif nonak_mean > akademik_mean + 0.5:
-                            kecenderungan = "Non-Akademik (aktif organisasi/UKM)"
+                            kecenderungan = "Non-Akademik"
                         elif akademik_mean > 3 and nonak_mean > 3:
-                            kecenderungan = "All-Rounder (aktif di akademik & non-akademik)"
+                            kecenderungan = "All-Rounder"
                         else:
                             kecenderungan = "Seimbang"
 
@@ -199,9 +177,9 @@ def main():
                     df_desc = pd.DataFrame(rows).sort_values("Cluster")
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
-
                 else:
                     st.warning("Jalankan KMeans dulu di sub-tab **Run**.")
+
 
 
     # ---------------- DBSCAN Tab ----------------
