@@ -214,9 +214,9 @@ def main():
                             else:
                                 kecendrungan = "Netral"
                         
-                            kecendrungan_results[cluster_id] = {
+                        kecendrungan_results[cluster_id] = {
                                 "kecendrungan": kecendrungan
-                            }
+                        }
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
@@ -280,6 +280,7 @@ def main():
                             "Deskripsi": descriptions
                         })
                     df_desc = pd.DataFrame(rows).sort_values("Cluster")
+                    st.markdown("---")
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
 
