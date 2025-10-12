@@ -263,8 +263,8 @@ def main():
                         # --- Tampilkan hasil ---
                         st.markdown(f"""
                         **Cluster {cluster_id}**
-                        - 🎓 Rata-rata Akademik: `{mean_akademik:.2f}`
-                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak:.2f}`
+                        - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
+                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
                         - ⚖️ Prioritas: **{prioritas}**
                         - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
                         - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
