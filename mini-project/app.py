@@ -276,8 +276,8 @@ def main():
                         rows.append({
                             "Cluster": int(cluster_id),
                             "Jumlah": int(count),
-                            "Kecenderungan": hasil.get("kecendrungan", "Tidak diketahui"),
-                            "Deskripsi": descriptions.get(cluster_id, "Tidak ada deskripsi untuk cluster ini.")
+                            "Kecenderungan": kec,
+                            "Deskripsi": descriptions
                         })
                     df_desc = pd.DataFrame(rows).sort_values("Cluster")
                     st.dataframe(df_desc, use_container_width=True)
