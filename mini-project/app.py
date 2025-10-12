@@ -147,6 +147,7 @@ def main():
                 if "km_df" in st.session_state and "cluster" in st.session_state["km_df"].columns:
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
+                    kecendrungan_results = {}
                     
                     # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
@@ -212,6 +213,10 @@ def main():
                                 kecendrungan = "Seimbang (Pasif)"
                             else:
                                 kecendrungan = "Netral"
+                        
+                            kecendrungan_results[cluster_id] = {
+                                "kecendrungan": kecendrungan
+                            }
 
                         # Pilih kolom utama untuk aktivitas dominan
                         kolom_aktivitas = {
@@ -253,43 +258,47 @@ def main():
                             warna = "???"
                         else: warna = "🟢" if selaras else "🔴"
                     
-                        desc_dict = {
-                            "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
-                            "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
-                            "Seimbang (Aktif)": "⚖️ Aktif di dua sisi — akademik dan non-akademik berjalan beriringan.",
-                            "Seimbang (Pasif)": "🌙 Kegiatan relatif seimbang tapi intensitasnya tidak terlalu tinggi.",
-                            "Netral": "💤 Tidak menunjukkan kecenderungan yang kuat ke salah satu bidang."
-                        }
+                    desc_dict = {
+                        "Akademik": "🎓 Fokus pada kegiatan akademik, belajar mandiri, dan peningkatan IPK.",
+                        "Non-Akademik": "🎭 Lebih aktif di kegiatan organisasi, UKM, atau pekerjaan luar kampus.",
+                        "Seimbang (Aktif)": "⚖️ Aktif di dua sisi — akademik dan non-akademik berjalan beriringan.",
+                        "Seimbang (Pasif)": "🌙 Kegiatan relatif seimbang tapi intensitasnya tidak terlalu tinggi.",
+                        "Netral": "💤 Tidak menunjukkan kecenderungan yang kuat ke salah satu bidang."
+                    }
 
-                        descriptions = desc_dict.get(kecendrungan, "Deskripsi tidak tersedia.")
-                        rows = []
-                        for cluster_id, count in cluster_counts.items():
-                            rows.append({
-                                "Cluster": int(cluster_id),
-                                "Jumlah": int(count),
-                                "Kecenderungan": kecendrungan,
-                                "Deskripsi": descriptions
-                            })
-
-                        # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
-                        st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
-
-
-                            # --- Tampilkan hasil ---
-                        st.markdown(f"""
-                            **Cluster {cluster_id}**
-                            - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
-                            - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
-                            - ⚖️ Prioritas: **{prioritas}**
-                            - ⚖️ Kecendrungan: **{kecendrungan}**
-                            - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
-                            - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
-                            """)
-
-                    st.markdown("---")
+                    rows = []
+                    for cluster_id, count in cluster_counts.items():
+                        hasil = kecendrungan_results.get(cluster_id, {})
+                        kec = hasil.get("kecendrungan", "Tidak diketahui")
+                        
+                        descriptions = desc_dict.get(kec, "Deskripsi tidak tersedia.")
+                        
+                        rows.append({
+                            "Cluster": int(cluster_id),
+                            "Jumlah": int(count),
+                            "Kecenderungan": hasil.get("kecendrungan", "Tidak diketahui"),
+                            "Deskripsi": descriptions.get(cluster_id, "Tidak ada deskripsi untuk cluster ini.")
+                        })
                     df_desc = pd.DataFrame(rows).sort_values("Cluster")
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
+
+                    # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
+                    st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
+
+
+                        # --- Tampilkan hasil ---
+                    st.markdown(f"""
+                        **Cluster {cluster_id}**
+                        - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
+                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
+                        - ⚖️ Prioritas: **{prioritas}**
+                        - ⚖️ Kecendrungan: **{kecendrungan}**
+                        - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
+                        - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
+                        """)
+
+                    st.markdown("---")
 
                 else:
                     st.warning("Jalankan KMeans dulu di sub-tab **Run**.")
