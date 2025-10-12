@@ -270,26 +270,26 @@ def main():
                                 "Kecenderungan": kecendrungan,
                                 "Deskripsi": descriptions
                             })
+
+                        # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
+                        st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
+
+
+                            # --- Tampilkan hasil ---
+                        st.markdown(f"""
+                            **Cluster {cluster_id}**
+                            - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
+                            - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
+                            - ⚖️ Prioritas: **{prioritas}**
+                            - ⚖️ Kecendrungan: **{kecendrungan}**
+                            - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
+                            - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
+                            """)
+
+                    st.markdown("---")
                     df_desc = pd.DataFrame(rows).sort_values("Cluster")
                     st.dataframe(df_desc, use_container_width=True)
                     st.info(f"Total data: **{len(df_km)}**")
-
-                    # === Tambahan: Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan) ===
-                    st.markdown("### 🔍 Analisis Detail Tiap Cluster (Prioritas dan Kegiatan Dominan)")
-
-
-                        # --- Tampilkan hasil ---
-                    st.markdown(f"""
-                        **Cluster {cluster_id}**
-                        - 🎓 Rata-rata Akademik: `{mean_akademik_fix:.2f}`
-                        - 🏛️ Rata-rata Non-Akademik: `{mean_nonak_fix:.2f}`
-                        - ⚖️ Prioritas: **{prioritas}**
-                        - ⚖️ Kecendrungan: **{kecendrungan}**
-                        - 🧩 Aktivitas Dominan (Top 3): **{aktivitas_dominan_str}**
-                        - {warna} Keselarasan: **{'Selaras' if selaras else 'Tidak Selaras'}**
-                        """)
-
-                    st.markdown("---")
 
                 else:
                     st.warning("Jalankan KMeans dulu di sub-tab **Run**.")
