@@ -1,13 +1,6 @@
-# data_preprocessing.py
-# ==========================================================
-# Modul preprocessing survei mahasiswa — versi ringan
-# Hanya berisi fungsi preprocessing (tanpa clustering/plot)
-# ==========================================================
-
 import re
 import numpy as np
 import pandas as pd
-
 
 # -----------------------------------------------
 # ============== PREPROCESSING UTILS =============
@@ -17,14 +10,12 @@ def normalize_colnames(cols):
     """Rapikan nama kolom: hilangkan spasi berlebih dan trim."""
     return [re.sub(r"\s+", " ", str(c)).strip() for c in cols]
 
-
 def normalize_text_series(s: pd.Series) -> pd.Series:
     """Normalisasi string: lowercase, trim, samakan en-dash -> hyphen, rapikan spasi."""
     s = s.astype(str).str.strip().str.lower()
     s = s.str.replace("\u2013", "-", regex=False)  # en-dash -> hyphen
     s = s.str.replace(r"\s+", " ", regex=True)
     return s
-
 
 def parse_range_midpoint(s: pd.Series) -> pd.Series:
     """Parse rentang 'x - y' menjadi midpoint (float). Contoh: '3 - 5 jam' -> 4.0"""
@@ -36,29 +27,38 @@ def parse_range_midpoint(s: pd.Series) -> pd.Series:
     out.loc[has_range] = midpoint
     return out
 
-
 # -----------------------------------------------
 # ============ PREPROCESSING FUNCTIONS ===========
 # -----------------------------------------------
 
+def manual_preprocess_baseline(data: pd.DataFrame):
+    """
+    Fungsi preprocessing baseline (untuk digunakan jika diminta)
+    - Drop kolom yang tidak relevan
+    - Normalisasi kolom numerik, dan lainnya
+    """
+    df = data.copy()
+    drop_cols = ["timestamp", "date", "email", "nama", "name", "semester"]
+    df = df.drop(columns=[col for col in df.columns if col in drop_cols])
+
+    df.columns = normalize_colnames(df.columns)
+    for c in df.select_dtypes("object").columns:
+        df[c] = normalize_text_series(df[c])
+
+    df = df.fillna(df.median(numeric_only=True))
+    return df
+
 def manual_preprocess_v2(
     data: pd.DataFrame,
-    drop_cols=("timestamp", "date", "tanggal", "email", "nama", "name", "semester"),
+    drop_cols=("timestamp", "date", "email", "nama", "name", "semester"),
     outlier="clip",          # "clip" (winsorize by IQR) atau "drop"
     scale="robust",          # "standard" | "robust" | None
     small_cat_max_card=12,   # one-hot untuk kategori kecil
     skew_thresh=1.0
 ):
-    """
-    PREPROCESSING IMPROVED v2:
-    - Drop kolom identitas umum
-    - Normalisasi teks & mapping ordinal/boolean
-    - One-hot kategori kecil
-    - Imputasi median
-    - Outlier handling (clip/winsorize per kolom)
-    - Log-transform bila skew > threshold
-    - Scaling robust / standard / none
-    """
+    import pandas as pd
+    import numpy as np
+
     df = data.copy()
 
     # 1) Normalisasi header & string
@@ -129,7 +129,10 @@ def manual_preprocess_v2(
                 df_num[c] = np.log1p(col)
 
     # 8) Scaling
-    if scale == "standard":
+    if scale == "minmax":
+        df_num_minmax = (df_num - df_num.min()) / (df_num.max() - df_num.min())
+        X_scaled = df_num_minmax
+    elif scale == "standard":
         mean = df_num.mean()
         std = df_num.std(ddof=0).replace(0, 1.0)
         X_scaled = (df_num - mean) / std
@@ -140,7 +143,7 @@ def manual_preprocess_v2(
     else:
         X_scaled = df_num.copy()
 
-    # 9) Laporan ringkas
+    # 9) Report
     report = {
         "mode": "improved_v2",
         "dropped_cols": to_drop,
