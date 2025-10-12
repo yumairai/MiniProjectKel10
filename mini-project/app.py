@@ -174,7 +174,7 @@ def main():
 
                         # --- Tentukan prioritas utama ---
                         selisih = mean_ipk - mean_nonak
-                        threshold_selisih = 0.3  # ambang batas beda signifikan
+                        threshold_selisih = 0.6  # ambang batas beda signifikan
                         threshold_tinggi = 2.0   # batas nilai dianggap tinggi (bisa diubah)
 
                         if selisih > threshold_selisih:
