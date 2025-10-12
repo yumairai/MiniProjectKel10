@@ -264,7 +264,9 @@ def main():
                             selaras = True
                         elif prioritas == "Non-Akademik" and kecendrungan == "Non-Akademik":
                             selaras = True
-                        elif kecendrungan == "Seimbang (Aktif)" or kecendrungan == "Seimbang (Pasif)": sama = True
+                        elif kecendrungan == "Seimbang (Aktif)" or kecendrungan == "Seimbang (Pasif)": 
+                            sama = True
+                            selaras = True
 
                         if sama:
                             warna = "???"
