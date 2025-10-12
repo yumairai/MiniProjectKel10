@@ -78,6 +78,9 @@ def main():
         if df_for_cluster is not None:
             st.write("Preview data:")
             st.dataframe(df_for_cluster.head(124))
+            cols_to_drop = [c for c in X_scaled.columns if "mean" in c.lower()]
+            if cols_to_drop:
+                X_scaled = X_scaled.drop(columns=cols_to_drop)
 
             D = gower_distance(df_for_cluster)
 
