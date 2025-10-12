@@ -209,15 +209,19 @@ def main():
                         # --- Tentukan prioritas utama ---
                         selisih = mean_akademik_fix - mean_nonak_fix
 
+                        threshold_selisih = 0.15
+                        threshold_ak_tinggi = 0.5
+                        threshold_nonak_tinggi = 0.45
+
                         if selisih > threshold_selisih:
                             prioritas = "Akademik"
                         elif selisih < -threshold_selisih:
                             prioritas = "Non-Akademik"
                         else:
                             # dua-duanya relatif seimbang
-                            if mean_akademik_fix > threshold_tinggi and mean_nonak_fix > threshold_tinggi:
+                            if mean_akademik_fix > threshold_ak_tinggi and mean_nonak_fix > threshold_nonak_tinggi:
                                 prioritas = "Seimbang (Aktif)"
-                            elif mean_akademik_fix < threshold_tinggi and mean_nonak_fix < threshold_tinggi:
+                            elif mean_akademik_fix < threshold_ak_tinggi and mean_nonak_fix < threshold_nonak_tinggi:
                                 prioritas = "Seimbang (Pasif)"
                             else:
                                 prioritas = "Netral"
