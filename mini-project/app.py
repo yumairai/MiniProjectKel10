@@ -48,7 +48,12 @@ def main():
         else:
             try:
                 base_dir = os.path.dirname(__file__)  # lokasi file app.py
-                default_path = os.path.join(base_dir, "mini-project", "mini-project\data\Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx")
+                default_path = os.path.join(
+                    base_dir,
+                    "mini-project",
+                    "data",
+                    "Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"
+                )
 
                 data = pd.read_excel(default_path)
                 st.success("✅ Menggunakan dataset default bawaan.")
