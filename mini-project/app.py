@@ -57,7 +57,7 @@ def main():
 
         data_source = st.radio(
         "Pilih sumber data:",
-        ["Upload Sendiri", "Gunakan Dataset Default"],
+        ["Upload Dataset", "Gunakan Dataset Default"],
         index=0,
         horizontal=True
         )
