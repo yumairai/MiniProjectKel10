@@ -43,7 +43,7 @@ def main():
             ---
             🔹 **Langkah-langkah:**
             1. Unggah dataset atau gunakan dataset default  
-            2. Lakukan *Preprocessing (Improved v2)*  
+            2. Lakukan *Preprocessing*  
             3. Jalankan *Clustering (K-Means / DBSCAN)*  
             4. Lihat hasil dan interpretasi tiap cluster
 
