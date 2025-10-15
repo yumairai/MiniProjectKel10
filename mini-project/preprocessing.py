@@ -13,7 +13,7 @@ def normalize_colnames(cols):
 def normalize_text_series(s: pd.Series) -> pd.Series:
     """Normalisasi string: lowercase, trim, samakan en-dash -> hyphen, rapikan spasi."""
     s = s.astype(str).str.strip().str.lower()
-    s = s.str.replace("\u2013", "-", regex=False)  # en-dash -> hyphen
+    s = s.str.replace("\u2013", "-", regex=False)  
     s = s.str.replace(r"\s+", " ", regex=True)
     return s
 
@@ -51,34 +51,17 @@ def manual_preprocess_baseline(data: pd.DataFrame):
 def manual_preprocess_v2(
     data: pd.DataFrame,
     drop_cols=("timestamp", "date", "email", "nama", "name", "semester"),
-    outlier="clip",          # "clip" (winsorize by IQR) atau "drop"
-    scale="robust",          # "standard" | "robust" | None
-    small_cat_max_card=12,   # one-hot untuk kategori kecil
+    outlier="clip",          
+    scale="robust",          
+    small_cat_max_card=12,   
     skew_thresh=1.0
 ):
     import pandas as pd
     import numpy as np
     import re
 
-    # --- Daftar kolom akademik & non-akademik ---
-    akademik_cols = [
-        "Berapa jam rata-rata per minggu kamu gunakan untuk belajar mandiri (di luar kelas)?",
-        "Seberapa sering kamu mengerjakan tugas tepat waktu?",
-        "Seberapa sering kamu mengikuti kegiatan akademik tambahan (kuliah tamu, seminar, workshop)?",
-        "Bagaimana tingkat prioritasmu terhadap IPK?"
-    ]
-
-    nonak_cols = [
-        "Apakah kamu aktif mengikuti organisasi/UKM di kampus?",
-        "Berapa jam rata-rata per minggu untuk organisasi/UKM?",
-        "Apakah kamu bekerja part-time/freelance?",
-        "Berapa jam rata-rata per minggu untuk pekerjaan/hobi/olahraga?",
-        "Seberapa penting kegiatan non-akademik bagimu?"
-    ]
-
     df = data.copy()
 
-    # --- Normalisasi header & teks ---
     def normalize_colnames(cols):
         return [re.sub(r"\s+", " ", str(c)).strip() for c in cols]
     df.columns = normalize_colnames(df.columns)
@@ -91,12 +74,10 @@ def manual_preprocess_v2(
     for c in df.select_dtypes("object").columns:
         df[c] = normalize_text_series(df[c])
 
-    # --- Drop kolom tidak relevan ---
     to_drop = [c for c in df.columns if any(k in c.lower() for k in drop_cols)]
     if to_drop:
         df = df.drop(columns=to_drop)
 
-    # --- Mapping nilai ordinal, range, boolean ---
     base_map = {
         "kurang dari 1 jam": 0.5,
         "1 - 2 jam": 1.5, "1-2 jam": 1.5,
@@ -130,7 +111,6 @@ def manual_preprocess_v2(
         s_num = pd.to_numeric(s, errors="coerce")
         df[c] = np.where(s_num.notna(), s_num, s)
 
-    # --- One-hot kategori kecil ---
     obj_cols_after = df.select_dtypes("object").columns.tolist()
     small_cats = []
     for c in obj_cols_after:
@@ -140,7 +120,6 @@ def manual_preprocess_v2(
     if small_cats:
         df = pd.get_dummies(df, columns=small_cats, drop_first=False, dtype=float)
 
-    # --- Imputasi dan outlier handling ---
     df_num = df.select_dtypes(include=["number"]).fillna(df.median(numeric_only=True))
     Q1, Q3 = df_num.quantile(0.25), df_num.quantile(0.75)
     IQR = (Q3 - Q1).replace(0, np.nan)
@@ -151,7 +130,6 @@ def manual_preprocess_v2(
         mask = ~((df_num.lt(lower)) | (df_num.gt(upper))).any(axis=1)
         df_num = df_num[mask]
 
-    # --- Log transform kolom miring ---
     for c in df_num.columns:
         col = df_num[c]
         if col.min() >= 0:
@@ -159,7 +137,6 @@ def manual_preprocess_v2(
             if np.isfinite(sk) and abs(sk) > skew_thresh:
                 df_num[c] = np.log1p(col)
 
-    # --- Scaling ---
     if scale == "robust":
         med = df_num.median()
         iqr = (df_num.quantile(0.75) - df_num.quantile(0.25)).replace(0, 1.0)

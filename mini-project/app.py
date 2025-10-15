@@ -21,7 +21,7 @@ def main():
     )
 
     st.title("🎓 Campus Activity Insight (CAI)")
-    st.markdown("### 🔍 Analisis Keseimbangan Aktivitas Mahasiswa — Preprocessing & Clustering")
+    st.markdown("🔍 Analisis Keseimbangan Aktivitas Mahasiswa — Preprocessing & Clustering")
 
     tab_prep, tab_km, tab_db = st.tabs([
         "Preprocessing",
@@ -32,11 +32,7 @@ def main():
 
     # ---------------- Preprocessing Tab ----------------
     with tab_prep:
-        st.sidebar.header("⚙️ Opsi Preprocessing")
-
-        # --- Pilihan Mode ---
-        mode = st.sidebar.selectbox("Mode", ["Improved v2 (disarankan)", "Baseline (awal)"])
-
+        st.sidebar.header("⚙️ Opsi Data")
         # --- Pilih sumber data ---
         data_source = st.sidebar.radio(
             "Pilih sumber data:",
@@ -78,24 +74,7 @@ def main():
             # === Tombol Proses Data ===
             if st.button("🚀 Proses Data"):
                 with st.spinner("Memproses..."):
-                    if mode == "Improved v2 (disarankan)":
-                        imputed, X_scaled, report = manual_preprocess_v2(data)
-                    else:
-                        result = manual_preprocess_baseline(data)
-                        if isinstance(result, tuple) and len(result) == 3:
-                            imputed, X_scaled, report = result
-                        else:
-                            imputed = result
-                            X_scaled = imputed.copy()
-                            report = {
-                                "mode": "baseline",
-                                "dropped_cols": [],
-                                "onehot_cols": [],
-                                "n_rows": int(X_scaled.shape[0]),
-                                "n_features": int(X_scaled.shape[1]),
-                                "outlier_strategy": None,
-                                "scale": None,
-                            }
+                    imputed, X_scaled, report = manual_preprocess_v2(data)
 
                 st.success("✅ Selesai!")
                 st.session_state["clean_imputed"] = imputed
