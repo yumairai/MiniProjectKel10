@@ -42,7 +42,7 @@ def main():
                     data = pd.read_excel(uploaded_file)
         else:
             try:
-                default_path = "Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"  # ubah sesuai lokasi file default kamu
+                default_path = "mini-project\Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"  # ubah sesuai lokasi file default kamu
                 data = pd.read_csv(default_path)
                 st.success("✅ Menggunakan dataset default bawaan.")
             except Exception as e:
