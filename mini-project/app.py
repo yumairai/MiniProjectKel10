@@ -51,7 +51,6 @@ def main():
                 default_path = os.path.join(
                     base_dir,
                     "mini-project",
-                    "data",
                     "Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"
                 )
 
