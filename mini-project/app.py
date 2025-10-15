@@ -53,12 +53,13 @@ def main():
         )
 
         st.sidebar.markdown("---")
-        st.sidebar.header("⚙️ Opsi Data")
-        # --- Pilih sumber data ---
-        data_source = st.sidebar.radio(
-            "Pilih sumber data:",
-            ["Upload Dataset", "Gunakan Dataset Default"],
-            index=0
+        st.header("📂 Upload atau Pilih Dataset")
+
+        data_source = st.radio(
+        "Pilih sumber data:",
+        ["Upload Sendiri", "Gunakan Dataset Default"],
+        index=0,
+        horizontal=True
         )
 
         data = None
