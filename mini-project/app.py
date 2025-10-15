@@ -50,7 +50,6 @@ def main():
                 base_dir = os.path.dirname(__file__)  # lokasi file app.py
                 default_path = os.path.join(
                     base_dir,
-                    "mini-project",
                     "Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"
                 )
 
