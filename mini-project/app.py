@@ -21,13 +21,40 @@ def main():
     # ---------------- Preprocessing Tab ----------------
     with tab_prep:
         st.sidebar.header("⚙️ Opsi Preprocessing")
-        mode = st.sidebar.selectbox("Mode", ["Improved v2 (disarankan)", "Baseline (awal)"])
-        uploaded_file = st.file_uploader("Unggah file CSV/XLSX (Preprocessing)", type=["csv", "xlsx"])
 
-        if uploaded_file is not None:
-            data = pd.read_csv(uploaded_file) if uploaded_file.name.lower().endswith(".csv") else pd.read_excel(uploaded_file)
-            st.subheader("📂 Data Asli (preview)")
+        mode = st.sidebar.selectbox("Mode", ["Improved v2 (disarankan)", "Baseline (awal)"])
+
+        data_source = st.sidebar.radio(
+            "Pilih sumber data:",
+            ["Upload Sendiri", "Gunakan Dataset Default"],
+            index=0
+        )
+
+        uploaded_file = None
+        data = None
+
+        if data_source == "Upload Dataset":
+            uploaded_file = st.file_uploader("Unggah file CSV/XLSX (Preprocessing)", type=["csv", "xlsx"])
+            if uploaded_file is not None:
+                if uploaded_file.name.lower().endswith(".csv"):
+                    data = pd.read_csv(uploaded_file)
+                else:
+                    data = pd.read_excel(uploaded_file)
+        else:
+            try:
+                default_path = "Survei Keseimbangan Aktivitas Mahasiswa (Responses).csv"  # ubah sesuai lokasi file default kamu
+                data = pd.read_csv(default_path)
+                st.success("✅ Menggunakan dataset default bawaan.")
+            except Exception as e:
+                st.error(f"❌ Gagal memuat dataset default: {e}")
+
+        # 🔹 Tampilkan data jika sudah tersedia
+        if data is not None:
+            st.subheader("📂 Data (preview)")
             st.dataframe(data.head(124))
+        else:
+            st.info("📁 Silakan unggah file atau gunakan dataset default.")
+
 
             if st.button("🚀 Proses Data"):
                 with st.spinner("Memproses..."):
