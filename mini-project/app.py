@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -22,17 +23,19 @@ def main():
     with tab_prep:
         st.sidebar.header("⚙️ Opsi Preprocessing")
 
+        # --- Pilihan Mode ---
         mode = st.sidebar.selectbox("Mode", ["Improved v2 (disarankan)", "Baseline (awal)"])
 
+        # --- Pilih sumber data ---
         data_source = st.sidebar.radio(
             "Pilih sumber data:",
-            ["Upload Sendiri", "Gunakan Dataset Default"],
+            ["Upload Dataset", "Gunakan Dataset Default"],
             index=0
         )
 
-        uploaded_file = None
         data = None
 
+        # === Opsi 1: Upload Sendiri ===
         if data_source == "Upload Dataset":
             uploaded_file = st.file_uploader("Unggah file CSV/XLSX (Preprocessing)", type=["csv", "xlsx"])
             if uploaded_file is not None:
@@ -40,22 +43,25 @@ def main():
                     data = pd.read_csv(uploaded_file)
                 else:
                     data = pd.read_excel(uploaded_file)
+
+        # === Opsi 2: Gunakan Dataset Default ===
         else:
             try:
-                default_path = "mini-project\Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx"  # ubah sesuai lokasi file default kamu
-                data = pd.read_csv(default_path)
+                base_dir = os.path.dirname(__file__)  # lokasi file app.py
+                default_path = os.path.join(base_dir, "mini-project", "data\Survei Keseimbangan Aktivitas Mahasiswa (Responses).xlsx")
+
+                data = pd.read_excel(default_path)
                 st.success("✅ Menggunakan dataset default bawaan.")
             except Exception as e:
                 st.error(f"❌ Gagal memuat dataset default: {e}")
+                st.info("Silakan unggah file atau pastikan file default tersedia di folder 'mini-project/'.")
 
-        # 🔹 Tampilkan data jika sudah tersedia
+        # === Jika data tersedia, tampilkan preview ===
         if data is not None:
             st.subheader("📂 Data (preview)")
             st.dataframe(data.head(124))
-        else:
-            st.info("📁 Silakan unggah file atau gunakan dataset default.")
 
-
+            # === Tombol Proses Data ===
             if st.button("🚀 Proses Data"):
                 with st.spinner("Memproses..."):
                     if mode == "Improved v2 (disarankan)":
@@ -87,6 +93,8 @@ def main():
                 st.subheader("📝 Report")
                 st.json(report)
 
+        else:
+            st.info("📁 Silakan unggah file atau gunakan dataset default untuk melanjutkan.")
     # ---------------- KMeans Tab ----------------
     with tab_km:
         st.header("🔗 KMeans")
