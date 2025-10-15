@@ -14,10 +14,21 @@ from metrics import silhouette_scores_manual
 from components import render_noise_section, bar_pie_distribution
 
 def main():
-    st.set_page_config(page_title="Preprocessing & Clustering", page_icon="🧹", layout="wide")
-    st.title("🧹 Preprocessing & 🔗 Clustering")
+    st.set_page_config(
+        page_title="Campus Activity Insight (CAI)",
+        page_icon="🎓",
+        layout="wide"
+    )
 
-    tab_prep, tab_km, tab_db = st.tabs(["1) Preprocessing", "2) KMeans", "3) DBSCAN"])
+    st.title("🎓 Campus Activity Insight (CAI)")
+    st.markdown("### 🔍 Analisis Keseimbangan Aktivitas Mahasiswa — Preprocessing & Clustering")
+
+    tab_prep, tab_km, tab_db = st.tabs([
+        "Preprocessing",
+        "K-Means Clustering",
+        "DBSCAN Clustering"
+    ])
+
 
     # ---------------- Preprocessing Tab ----------------
     with tab_prep:
