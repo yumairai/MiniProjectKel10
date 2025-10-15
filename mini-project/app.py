@@ -32,6 +32,27 @@ def main():
 
     # ---------------- Preprocessing Tab ----------------
     with tab_prep:
+        # ===================== 🌟 Sidebar Design =====================
+        st.sidebar.markdown("## 🎓 **Campus Activity Insight (CAI)**")
+        st.sidebar.markdown(
+            """
+            📊 **CAI** membantu menganalisis *keseimbangan aktivitas mahasiswa*  
+            antara **akademik** dan **non-akademik**,  
+            menggunakan metode **K-Means** dan **DBSCAN**.
+
+            ---
+            🔹 **Langkah-langkah:**
+            1. Unggah dataset atau gunakan dataset default  
+            2. Lakukan *Preprocessing (Improved v2)*  
+            3. Jalankan *Clustering (K-Means / DBSCAN)*  
+            4. Lihat hasil dan interpretasi tiap cluster
+
+            ---
+            💡 *Gunakan hasil preprocessing untuk clustering agar hasil lebih akurat.*
+            """
+        )
+
+        st.sidebar.markdown("---")
         st.sidebar.header("⚙️ Opsi Data")
         # --- Pilih sumber data ---
         data_source = st.sidebar.radio(
