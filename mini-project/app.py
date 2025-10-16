@@ -158,6 +158,19 @@ def main():
                         st.session_state["km_D"] = D
                         st.session_state["km_df"] = df_for_cluster.copy()
 
+                        try:
+                            s_values_km, per_cluster_km, overall_km = silhouette_scores_manual(D, kmeans.labels)
+                        except Exception as e:
+                            s_values_km, per_cluster_km, overall_km = None, {}, np.nan
+                            st.warning(f"Gagal menghitung Silhouette untuk K-Means: {e}")
+
+                                # Menyimpan hasil silhouette score ke session_state
+                        st.session_state["km_sil"] = {
+                            "s_values": s_values_km,
+                            "per_cluster": per_cluster_km,
+                            "overall": float(overall_km) if overall_km is not None and np.isfinite(overall_km) else None,
+                            }
+                        
             with km_elbow_tab:
                 max_k = st.slider("Maksimum K untuk Elbow Method", min_value=3, max_value=15, value=8, key="maxk_km")
                 if st.button("🔍 Jalankan Elbow Method", key="btn_elbow_km"):
@@ -198,7 +211,30 @@ def main():
                     df_km = st.session_state["km_df"]
                     cluster_counts = df_km["cluster"].value_counts().sort_index()
                     hasil_results = {}
-                    
+
+                    km_sil = st.session_state.get("km_sil", {})
+                    overall_silhouette = km_sil.get("overall", None)
+
+                    if overall_silhouette is not None:
+                        st.markdown(f"**Overall Silhouette Score**: **{overall_silhouette:.4f}**")
+                    else:
+                        st.info("Silhouette score tidak tersedia. Pastikan K-Means sudah dijalankan.")
+
+
+                    if "per_cluster" in km_sil:
+                        per_cluster = km_sil["per_cluster"]
+                        silhouette_means = [mean_c for mean_c, _, _, _ in per_cluster.values()]
+                        cluster_ids = list(per_cluster.keys())
+                        
+                        fig_silhouette, ax_silhouette = plt.subplots(figsize=(5, 3))
+                        ax_silhouette.bar(cluster_ids, silhouette_means, color='skyblue')
+                        ax_silhouette.set_xlabel("Cluster")
+                        ax_silhouette.set_ylabel("Silhouette Mean")
+                        ax_silhouette.set_title("Silhouette Score per Cluster")
+                        ax_silhouette.set_ylim(-1, 1)  # Nilai Silhouette berada dalam rentang -1 hingga 1
+                        ax_silhouette.grid(True, axis='y', linestyle='--', alpha=0.7)
+                        st.pyplot(fig_silhouette)
+
                     # --- Loop tiap cluster
                     for cluster_id in sorted(cluster_counts.index):
                         df_cluster = df_km[df_km["cluster"] == cluster_id]
